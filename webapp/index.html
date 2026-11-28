@@ -1,518 +1,1215 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Clarix — Explainable Fraud Detection</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<style>
-  *{box-sizing:border-box}
-  html,body{margin:0;padding:0;height:100%}
-  :root{
-    --bg:#f1f5f9;--surface:#ffffff;--surface-2:#f8fafc;--border:#e2e8f0;
-    --input-border:#cbd5e1;--text:#0f172a;--text-2:#334155;--text-3:#475569;
-    --muted:#64748b;--muted-2:#94a3b8;
-    --teal:#0d9488;--teal-2:#0f766e;--teal-l:#14b8a6;
-    --gauge-ink:#0f1728;--gauge-track:#e3e9f1;
-  }
-  [data-theme="dark"]{
-    --bg:#0a0f1a;--surface:#111a2b;--surface-2:#0e1626;--border:#243149;
-    --input-border:#31405a;--text:#f1f5f9;--text-2:#cbd5e1;--text-3:#a9b6c9;
-    --muted:#8896ab;--muted-2:#6b7a91;
-    --gauge-ink:#f2f6fa;--gauge-track:#243149;
-  }
-  body{font-family:'IBM Plex Sans',system-ui,sans-serif;color:var(--text);background:var(--bg)}
-  .mono{font-family:'IBM Plex Mono',monospace}
-  a{color:var(--teal);text-decoration:none}
-  ::-webkit-scrollbar{width:10px;height:10px}
-  ::-webkit-scrollbar-thumb{background:var(--input-border)}
-  ::-webkit-scrollbar-track{background:var(--surface-2)}
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Clarix — Explainable Fraud Detection</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap"
+    rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box
+    }
 
-  .app{display:flex;height:100vh;width:100%;overflow:hidden;background:var(--bg)}
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      height: 100%
+    }
 
-  /* ── SIDEBAR (always dark) ── */
-  .sidebar{width:220px;flex:none;background:#0b1220;border-right:1px solid #1e293b;
-    display:flex;flex-direction:column;color:var(--muted-2)}
-  .sb-head{padding:22px 20px 18px;border-bottom:1px solid #1e293b}
-  .sb-brand{display:flex;align-items:center;gap:10px}
-  .sb-brand span{font:600 20px 'IBM Plex Sans';color:#f7fafd;letter-spacing:.02em}
-  .sb-tag{margin-top:7px;font:500 10px 'IBM Plex Mono';letter-spacing:.14em;
-    text-transform:uppercase;color:#475569}
-  .sb-nav{flex:1;padding:14px 12px;display:flex;flex-direction:column;gap:2px}
-  .nav-btn{display:flex;align-items:center;gap:11px;padding:9px 12px;border:none;
-    cursor:pointer;text-align:left;width:100%;font:500 13px 'IBM Plex Sans';
-    background:transparent;color:#94a3b8;transition:background .15s,color .15s}
-  .nav-btn:hover{background:#111c2e;color:#cbd5e1}
-  .nav-btn.active{background:#12303a;color:#5eead4;box-shadow:inset 3px 0 0 #14b8a6}
-  .sb-theme{padding:12px 16px;border-top:1px solid #1e293b}
-  .theme-toggle{display:flex;gap:3px;padding:3px;background:#0a1120;
-    border:1px solid #1e293b;border-radius:8px}
-  .theme-toggle button{flex:1;padding:7px 0;border:none;border-radius:6px;cursor:pointer;
-    font:600 10px 'IBM Plex Mono';letter-spacing:.08em;background:transparent;color:#6b7a91;transition:.15s}
-  .theme-toggle button:hover{color:#cbd5e1}
-  .theme-toggle button.active{background:var(--teal);color:#fff}
-  .sb-status{padding:14px 20px;border-top:1px solid #1e293b;display:flex;align-items:center;gap:9px}
-  .sb-status .dot{width:8px;height:8px;flex:none;border-radius:50%}
-  .sb-status .txt{font:500 11px 'IBM Plex Mono';letter-spacing:.06em;color:#6b7a91}
+    :root {
+      --bg: #f1f5f9;
+      --surface: #ffffff;
+      --surface-2: #f8fafc;
+      --border: #e2e8f0;
+      --input-border: #cbd5e1;
+      --text: #0f172a;
+      --text-2: #334155;
+      --text-3: #475569;
+      --muted: #64748b;
+      --muted-2: #94a3b8;
+      --teal: #0d9488;
+      --teal-2: #0f766e;
+      --teal-l: #14b8a6;
+      --gauge-ink: #0f1728;
+      --gauge-track: #e3e9f1;
+    }
 
-  /* ── MAIN ── */
-  .main{flex:1;overflow-y:auto;padding:30px 40px 60px;background:var(--bg)}
-  .page{display:none}
-  .page.active{display:block}
-  h1.title{margin:0;font:600 26px 'IBM Plex Sans';letter-spacing:-.01em}
-  .subtitle{margin:6px 0 0;font-size:14px;color:var(--muted)}
+    [data-theme="dark"] {
+      --bg: #0a0f1a;
+      --surface: #111a2b;
+      --surface-2: #0e1626;
+      --border: #243149;
+      --input-border: #31405a;
+      --text: #f1f5f9;
+      --text-2: #cbd5e1;
+      --text-3: #a9b6c9;
+      --muted: #8896ab;
+      --muted-2: #6b7a91;
+      --gauge-ink: #f2f6fa;
+      --gauge-track: #243149;
+    }
 
-  .card{background:var(--surface);border:1px solid var(--border);padding:20px}
-  .lbl{display:block;margin-bottom:5px;font:600 10px 'IBM Plex Mono';letter-spacing:.09em;
-    text-transform:uppercase;color:var(--muted)}
-  input.fld,select.fld{width:100%;padding:9px 11px;border:1px solid var(--input-border);
-    background:var(--surface);font:400 13px 'IBM Plex Mono';color:var(--text)}
-  input.fld:focus,select.fld:focus{outline:none;border-color:var(--teal)}
+    body {
+      font-family: 'IBM Plex Sans', system-ui, sans-serif;
+      color: var(--text);
+      background: var(--bg)
+    }
 
-  .btn-teal{width:100%;padding:13px;border:none;border-radius:10px;background:var(--teal);
-    color:#fff;font:600 13px 'IBM Plex Mono';letter-spacing:.08em;text-transform:uppercase;
-    cursor:pointer;transition:background .15s}
-  .btn-teal:hover{background:var(--teal-2)}
-  .btn-teal:disabled{opacity:.6;cursor:not-allowed}
-  .btn-ex{display:flex;align-items:center;justify-content:center;gap:8px;padding:11px;
-    border-radius:10px;font:600 12px 'IBM Plex Sans';cursor:pointer;transition:background .15s}
-  .btn-fraud{border:1px solid #fecaca;background:#fef2f2;color:#b91c1c}
-  .btn-fraud:hover{background:#fee2e2}
-  .btn-normal{border:1px solid #bbf7d0;background:#f0fdf4;color:#15803d}
-  .btn-normal:hover{background:#dcfce7}
+    .mono {
+      font-family: 'IBM Plex Mono', monospace
+    }
 
-  .banner{display:flex;align-items:center;gap:12px;padding:18px 22px}
-  .tier-pill{display:inline-block;padding:5px 16px;font:700 15px 'IBM Plex Sans';letter-spacing:.08em}
+    a {
+      color: var(--teal);
+      text-decoration: none
+    }
 
-  .factor{display:flex;align-items:center;gap:12px;padding:11px 13px}
-  .factor .badge{flex:none;width:24px;height:24px;display:flex;align-items:center;
-    justify-content:center;font-size:10px}
-  .factor .flabel{flex:1;font-size:13px;line-height:1.45}
-  .factor .fimpact{flex:none;font:600 9px 'IBM Plex Mono';letter-spacing:.08em;padding:3px 8px;white-space:nowrap}
+    ::-webkit-scrollbar {
+      width: 10px;
+      height: 10px
+    }
 
-  .bar-row{display:grid;grid-template-columns:170px 1fr 60px;align-items:center;gap:12px}
-  .bar-row .blabel{font:500 11px 'IBM Plex Mono';color:var(--text-3);text-align:right;
-    overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .bar-track{height:14px;background:var(--surface-2)}
-  .bar-val{font:600 11px 'IBM Plex Mono'}
+    ::-webkit-scrollbar-thumb {
+      background: var(--input-border)
+    }
 
-  .flow-box{flex:1;max-width:200px;border:1px solid var(--input-border);background:var(--surface-2);
-    padding:14px;text-align:center}
-  .flow-cap{font:600 10px 'IBM Plex Mono';letter-spacing:.08em;text-transform:uppercase;color:var(--muted-2)}
-  .flow-val{margin-top:6px;font:500 13px 'IBM Plex Mono';color:var(--text)}
+    ::-webkit-scrollbar-track {
+      background: var(--surface-2)
+    }
 
-  table.dc{width:100%;border-collapse:collapse;font:400 12px 'IBM Plex Mono'}
-  table.dc td,table.dc th{padding:6px 8px;border:1px solid var(--border)}
+    .app {
+      display: flex;
+      height: 100vh;
+      width: 100%;
+      overflow: hidden;
+      background: var(--bg)
+    }
 
-  .detTog{width:100%;display:flex;align-items:center;justify-content:space-between;padding:15px 20px;
-    border:none;background:transparent;cursor:pointer;font:600 13px 'IBM Plex Sans';color:var(--text)}
-  .detTog:hover{background:var(--surface-2)}
+    /* ── SIDEBAR (always dark) ── */
+    .sidebar {
+      width: 220px;
+      flex: none;
+      background: #0b1220;
+      border-right: 1px solid #1e293b;
+      display: flex;
+      flex-direction: column;
+      color: var(--muted-2)
+    }
 
-  .step{background:var(--surface);border:1px solid var(--border);padding:18px 18px 18px 16px;display:flex;gap:14px}
-  .step-num{flex:none;width:34px;height:34px;background:#0b1220;color:#5eead4;
-    font:600 15px 'IBM Plex Mono';display:flex;align-items:center;justify-content:center}
+    .sb-head {
+      padding: 22px 20px 18px;
+      border-bottom: 1px solid #1e293b
+    }
 
-  .drop{margin-top:24px;border:2px dashed var(--input-border);background:var(--surface);
-    padding:34px;text-align:center;cursor:pointer;transition:border-color .15s,background .15s}
-  .drop:hover{border-color:var(--teal)}
-  .drop.drag{border-color:var(--teal);background:var(--surface-2)}
-  .stat{background:var(--surface);border:1px solid var(--border);padding:18px 20px}
-  .stat .k{font:600 10px 'IBM Plex Mono';letter-spacing:.1em;text-transform:uppercase;color:var(--muted-2)}
-  .stat .v{margin-top:8px;font:600 30px 'IBM Plex Sans';color:var(--text)}
-  th.sortable{cursor:pointer}
-  .arch-box{width:180px;background:var(--surface);border:1px solid var(--border);
-    border-top:3px solid var(--teal);padding:18px 16px}
+    .sb-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px
+    }
 
-  .spinner{width:34px;height:34px;border:3px solid var(--border);border-top-color:var(--teal);
-    border-radius:50%;animation:spin .8s linear infinite;margin:0 auto}
-  @keyframes spin{to{transform:rotate(360deg)}}
-  .muted{color:var(--muted)}
+    .sb-brand span {
+      font: 600 20px 'IBM Plex Sans';
+      color: #f7fafd;
+      letter-spacing: .02em
+    }
 
-  /* ── CONFIRMATION MODAL ── */
-  .modal-bg{position:fixed;inset:0;background:rgba(2,6,23,.55);display:none;align-items:center;
-    justify-content:center;z-index:50;padding:16px}
-  .modal-bg.open{display:flex}
-  .modal{width:520px;max-width:100%;max-height:calc(100vh - 32px);overflow-y:auto;background:var(--surface);
-    border:1px solid var(--border);border-top:4px solid var(--teal);box-shadow:0 20px 50px rgba(0,0,0,.35)}
-  .modal-head{padding:18px 22px 12px;border-bottom:1px solid var(--border)}
-  .modal-body{padding:16px 22px}
-  .modal-foot{padding:14px 22px 18px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end}
-  .btn-ghost{padding:11px 18px;border:1px solid var(--input-border);border-radius:10px;background:var(--surface);
-    color:var(--text-2);font:600 12px 'IBM Plex Mono';letter-spacing:.06em;text-transform:uppercase;cursor:pointer}
-  .btn-ghost:hover{background:var(--surface-2)}
-  .modal-foot .btn-teal{width:auto;padding:11px 18px}
-  .chk{display:flex;gap:10px;align-items:flex-start;padding:9px 12px;font-size:13px;line-height:1.45;margin-top:6px}
-  .chk.ok{background:#f0fdf4;border:1px solid #bbf7d0;color:#166534}
-  .chk.warn{background:#fff7ed;border:1px solid #fed7aa;color:#9a3412}
-  .chk.err{background:#fef2f2;border:1px solid #fecaca;color:#991b1b}
-  .chk.info{background:var(--surface-2);border:1px solid var(--border);color:var(--text-3)}
-  .ack{display:flex;gap:10px;align-items:center;margin-top:14px;font-size:13px;color:var(--text-2);cursor:pointer}
-  .ack input{width:16px;height:16px;accent-color:var(--teal)}
+    .sb-tag {
+      margin-top: 7px;
+      font: 500 10px 'IBM Plex Mono';
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: #475569
+    }
 
-  /* ── USER MANUAL ── */
-  .man-h{font:600 10px 'IBM Plex Mono';letter-spacing:.12em;text-transform:uppercase;color:var(--muted-2);margin:34px 0 12px}
-  .man-p{max-width:820px;font-size:14px;line-height:1.65;color:var(--text-2);margin:0 0 10px}
-  .man-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;max-width:1040px}
-  table.man{width:100%;max-width:1040px;border-collapse:collapse;background:var(--surface);font-size:13px}
-  table.man th,table.man td{padding:10px 12px;border:1px solid var(--border);text-align:left;vertical-align:top;line-height:1.5}
-  table.man th{background:var(--surface-2);font:600 10px 'IBM Plex Mono';letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
-  table.man td{color:var(--text-2)}
-  .step > div:last-child{min-width:0;flex:1}
-  .demo{background:var(--surface);border:1px solid var(--border);padding:16px;display:flex;flex-direction:column;gap:10px}
-  .demo .vals{font:400 11px 'IBM Plex Mono';color:var(--text-3);line-height:1.7}
-  .demo .exp{font-size:12px;line-height:1.5;padding:8px 10px}
-  .demo button{align-self:flex-start;padding:8px 14px;border:1px solid var(--teal);border-radius:8px;background:transparent;
-    color:var(--teal);font:600 11px 'IBM Plex Mono';letter-spacing:.06em;text-transform:uppercase;cursor:pointer}
-  .demo button:hover{background:var(--teal);color:#fff}
-  .tag{display:inline-block;padding:2px 8px;font:600 10px 'IBM Plex Mono';letter-spacing:.06em}
-</style>
+    .sb-nav {
+      flex: 1;
+      padding: 14px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px
+    }
+
+    .nav-btn {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      padding: 9px 12px;
+      border: none;
+      cursor: pointer;
+      text-align: left;
+      width: 100%;
+      font: 500 13px 'IBM Plex Sans';
+      background: transparent;
+      color: #94a3b8;
+      transition: background .15s, color .15s
+    }
+
+    .nav-btn:hover {
+      background: #111c2e;
+      color: #cbd5e1
+    }
+
+    .nav-btn.active {
+      background: #12303a;
+      color: #5eead4;
+      box-shadow: inset 3px 0 0 #14b8a6
+    }
+
+    .sb-theme {
+      padding: 12px 16px;
+      border-top: 1px solid #1e293b
+    }
+
+    .theme-toggle {
+      display: flex;
+      gap: 3px;
+      padding: 3px;
+      background: #0a1120;
+      border: 1px solid #1e293b;
+      border-radius: 8px
+    }
+
+    .theme-toggle button {
+      flex: 1;
+      padding: 7px 0;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font: 600 10px 'IBM Plex Mono';
+      letter-spacing: .08em;
+      background: transparent;
+      color: #6b7a91;
+      transition: .15s
+    }
+
+    .theme-toggle button:hover {
+      color: #cbd5e1
+    }
+
+    .theme-toggle button.active {
+      background: var(--teal);
+      color: #fff
+    }
+
+    .sb-status {
+      padding: 14px 20px;
+      border-top: 1px solid #1e293b;
+      display: flex;
+      align-items: center;
+      gap: 9px
+    }
+
+    .sb-status .dot {
+      width: 8px;
+      height: 8px;
+      flex: none;
+      border-radius: 50%
+    }
+
+    .sb-status .txt {
+      font: 500 11px 'IBM Plex Mono';
+      letter-spacing: .06em;
+      color: #6b7a91
+    }
+
+    /* ── MAIN ── */
+    .main {
+      flex: 1;
+      overflow-y: auto;
+      padding: 30px 40px 60px;
+      background: var(--bg)
+    }
+
+    .page {
+      display: none
+    }
+
+    .page.active {
+      display: block
+    }
+
+    h1.title {
+      margin: 0;
+      font: 600 26px 'IBM Plex Sans';
+      letter-spacing: -.01em
+    }
+
+    .subtitle {
+      margin: 6px 0 0;
+      font-size: 14px;
+      color: var(--muted)
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 20px
+    }
+
+    .lbl {
+      display: block;
+      margin-bottom: 5px;
+      font: 600 10px 'IBM Plex Mono';
+      letter-spacing: .09em;
+      text-transform: uppercase;
+      color: var(--muted)
+    }
+
+    input.fld,
+    select.fld {
+      width: 100%;
+      padding: 9px 11px;
+      border: 1px solid var(--input-border);
+      background: var(--surface);
+      font: 400 13px 'IBM Plex Mono';
+      color: var(--text)
+    }
+
+    input.fld:focus,
+    select.fld:focus {
+      outline: none;
+      border-color: var(--teal)
+    }
+
+    .btn-teal {
+      width: 100%;
+      padding: 13px;
+      border: none;
+      border-radius: 10px;
+      background: var(--teal);
+      color: #fff;
+      font: 600 13px 'IBM Plex Mono';
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background .15s
+    }
+
+    .btn-teal:hover {
+      background: var(--teal-2)
+    }
+
+    .btn-teal:disabled {
+      opacity: .6;
+      cursor: not-allowed
+    }
+
+    .btn-ex {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 11px;
+      border-radius: 10px;
+      font: 600 12px 'IBM Plex Sans';
+      cursor: pointer;
+      transition: background .15s
+    }
+
+    .btn-fraud {
+      border: 1px solid #fecaca;
+      background: #fef2f2;
+      color: #b91c1c
+    }
+
+    .btn-fraud:hover {
+      background: #fee2e2
+    }
+
+    .btn-normal {
+      border: 1px solid #bbf7d0;
+      background: #f0fdf4;
+      color: #15803d
+    }
+
+    .btn-normal:hover {
+      background: #dcfce7
+    }
+
+    .banner {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 18px 22px
+    }
+
+    .tier-pill {
+      display: inline-block;
+      padding: 5px 16px;
+      font: 700 15px 'IBM Plex Sans';
+      letter-spacing: .08em
+    }
+
+    .factor {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 11px 13px
+    }
+
+    .factor .badge {
+      flex: none;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px
+    }
+
+    .factor .flabel {
+      flex: 1;
+      font-size: 13px;
+      line-height: 1.45
+    }
+
+    .factor .fimpact {
+      flex: none;
+      font: 600 9px 'IBM Plex Mono';
+      letter-spacing: .08em;
+      padding: 3px 8px;
+      white-space: nowrap
+    }
+
+    .bar-row {
+      display: grid;
+      grid-template-columns: 170px 1fr 60px;
+      align-items: center;
+      gap: 12px
+    }
+
+    .bar-row .blabel {
+      font: 500 11px 'IBM Plex Mono';
+      color: var(--text-3);
+      text-align: right;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap
+    }
+
+    .bar-track {
+      height: 14px;
+      background: var(--surface-2)
+    }
+
+    .bar-val {
+      font: 600 11px 'IBM Plex Mono'
+    }
+
+    .flow-box {
+      flex: 1;
+      max-width: 200px;
+      border: 1px solid var(--input-border);
+      background: var(--surface-2);
+      padding: 14px;
+      text-align: center
+    }
+
+    .flow-cap {
+      font: 600 10px 'IBM Plex Mono';
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--muted-2)
+    }
+
+    .flow-val {
+      margin-top: 6px;
+      font: 500 13px 'IBM Plex Mono';
+      color: var(--text)
+    }
+
+    table.dc {
+      width: 100%;
+      border-collapse: collapse;
+      font: 400 12px 'IBM Plex Mono'
+    }
+
+    table.dc td,
+    table.dc th {
+      padding: 6px 8px;
+      border: 1px solid var(--border)
+    }
+
+    .detTog {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 15px 20px;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      font: 600 13px 'IBM Plex Sans';
+      color: var(--text)
+    }
+
+    .detTog:hover {
+      background: var(--surface-2)
+    }
+
+    .step {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 18px 18px 18px 16px;
+      display: flex;
+      gap: 14px
+    }
+
+    .step-num {
+      flex: none;
+      width: 34px;
+      height: 34px;
+      background: #0b1220;
+      color: #5eead4;
+      font: 600 15px 'IBM Plex Mono';
+      display: flex;
+      align-items: center;
+      justify-content: center
+    }
+
+    .drop {
+      margin-top: 24px;
+      border: 2px dashed var(--input-border);
+      background: var(--surface);
+      padding: 34px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color .15s, background .15s
+    }
+
+    .drop:hover {
+      border-color: var(--teal)
+    }
+
+    .drop.drag {
+      border-color: var(--teal);
+      background: var(--surface-2)
+    }
+
+    .stat {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 18px 20px
+    }
+
+    .stat .k {
+      font: 600 10px 'IBM Plex Mono';
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--muted-2)
+    }
+
+    .stat .v {
+      margin-top: 8px;
+      font: 600 30px 'IBM Plex Sans';
+      color: var(--text)
+    }
+
+    th.sortable {
+      cursor: pointer
+    }
+
+    .arch-box {
+      width: 180px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-top: 3px solid var(--teal);
+      padding: 18px 16px
+    }
+
+    .spinner {
+      width: 34px;
+      height: 34px;
+      border: 3px solid var(--border);
+      border-top-color: var(--teal);
+      border-radius: 50%;
+      animation: spin .8s linear infinite;
+      margin: 0 auto
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg)
+      }
+    }
+
+    .muted {
+      color: var(--muted)
+    }
+
+    /* ── CONFIRMATION MODAL ── */
+    .modal-bg {
+      position: fixed;
+      inset: 0;
+      background: rgba(2, 6, 23, .55);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 50;
+      padding: 16px
+    }
+
+    .modal-bg.open {
+      display: flex
+    }
+
+    .modal {
+      width: 520px;
+      max-width: 100%;
+      max-height: calc(100vh - 32px);
+      overflow-y: auto;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-top: 4px solid var(--teal);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, .35)
+    }
+
+    .modal-head {
+      padding: 18px 22px 12px;
+      border-bottom: 1px solid var(--border)
+    }
+
+    .modal-body {
+      padding: 16px 22px
+    }
+
+    .modal-foot {
+      padding: 14px 22px 18px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end
+    }
+
+    .btn-ghost {
+      padding: 11px 18px;
+      border: 1px solid var(--input-border);
+      border-radius: 10px;
+      background: var(--surface);
+      color: var(--text-2);
+      font: 600 12px 'IBM Plex Mono';
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      cursor: pointer
+    }
+
+    .btn-ghost:hover {
+      background: var(--surface-2)
+    }
+
+    .modal-foot .btn-teal {
+      width: auto;
+      padding: 11px 18px
+    }
+
+    .chk {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      padding: 9px 12px;
+      font-size: 13px;
+      line-height: 1.45;
+      margin-top: 6px
+    }
+
+    .chk.ok {
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      color: #166534
+    }
+
+    .chk.warn {
+      background: #fff7ed;
+      border: 1px solid #fed7aa;
+      color: #9a3412
+    }
+
+    .chk.err {
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      color: #991b1b
+    }
+
+    .chk.info {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      color: var(--text-3)
+    }
+
+    .ack {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin-top: 14px;
+      font-size: 13px;
+      color: var(--text-2);
+      cursor: pointer
+    }
+
+    .ack input {
+      width: 16px;
+      height: 16px;
+      accent-color: var(--teal)
+    }
+
+    /* ── USER MANUAL ── */
+    .man-h {
+      font: 600 10px 'IBM Plex Mono';
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--muted-2);
+      margin: 34px 0 12px
+    }
+
+    .man-p {
+      max-width: 820px;
+      font-size: 14px;
+      line-height: 1.65;
+      color: var(--text-2);
+      margin: 0 0 10px
+    }
+
+    .man-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 14px;
+      max-width: 1040px
+    }
+
+    table.man {
+      width: 100%;
+      max-width: 1040px;
+      border-collapse: collapse;
+      background: var(--surface);
+      font-size: 13px
+    }
+
+    table.man th,
+    table.man td {
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      text-align: left;
+      vertical-align: top;
+      line-height: 1.5
+    }
+
+    table.man th {
+      background: var(--surface-2);
+      font: 600 10px 'IBM Plex Mono';
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--muted)
+    }
+
+    table.man td {
+      color: var(--text-2)
+    }
+
+    .step>div:last-child {
+      min-width: 0;
+      flex: 1
+    }
+
+    .demo {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px
+    }
+
+    .demo .vals {
+      font: 400 11px 'IBM Plex Mono';
+      color: var(--text-3);
+      line-height: 1.7
+    }
+
+    .demo .exp {
+      font-size: 12px;
+      line-height: 1.5;
+      padding: 8px 10px
+    }
+
+    .demo button {
+      align-self: flex-start;
+      padding: 8px 14px;
+      border: 1px solid var(--teal);
+      border-radius: 8px;
+      background: transparent;
+      color: var(--teal);
+      font: 600 11px 'IBM Plex Mono';
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      cursor: pointer
+    }
+
+    .demo button:hover {
+      background: var(--teal);
+      color: #fff
+    }
+
+    .tag {
+      display: inline-block;
+      padding: 2px 8px;
+      font: 600 10px 'IBM Plex Mono';
+      letter-spacing: .06em
+    }
+  </style>
 </head>
+
 <body>
-<div class="app" id="app">
+  <div class="app" id="app">
 
-  <!-- ══ SIDEBAR ══ -->
-  <aside class="sidebar">
-    <div class="sb-head">
-      <div class="sb-brand">
-        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#14b8a6" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 4 5v6c0 5 3.4 8.4 8 11 4.6-2.6 8-6 8-11V5z"></path><path d="m9 12 2 2 4-4"></path></svg>
-        <span>Clarix</span>
-      </div>
-      <div class="sb-tag">Explainable Fraud Detection</div>
-    </div>
-    <nav class="sb-nav" id="nav">
-      <button class="nav-btn" data-page="how">
-        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M9.5 9a2.5 2.5 0 1 1 3.2 2.4c-.7.3-1.2.9-1.2 1.6v.5"></path><path d="M12 17h.01"></path></svg>
-        <span>User Manual</span>
-      </button>
-      <button class="nav-btn active" data-page="single">
-        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h9"></path><path d="M14 3v5h5"></path><circle cx="16.5" cy="15.5" r="3"></circle><path d="m21 20-2.2-2.2"></path></svg>
-        <span>Single Transaction</span>
-      </button>
-      <button class="nav-btn" data-page="bulk">
-        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"></path><path d="M12 3v12"></path><path d="m8 7 4-4 4 4"></path></svg>
-        <span>Bulk Upload</span>
-      </button>
-      <button class="nav-btn" data-page="about">
-        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 11v5"></path><path d="M12 8h.01"></path></svg>
-        <span>About</span>
-      </button>
-    </nav>
-    <div class="sb-theme">
-      <div class="theme-toggle" id="themeToggle">
-        <button data-theme-set="light" class="active">☀ Light</button>
-        <button data-theme-set="dark">☾ Dark</button>
-      </div>
-    </div>
-    <div class="sb-status">
-      <span class="dot" id="statusDot" style="background:#64748b"></span>
-      <span class="txt" id="statusTxt">Checking…</span>
-    </div>
-  </aside>
-
-  <!-- ══ MAIN ══ -->
-  <main class="main">
-
-    <!-- PAGE: USER MANUAL -->
-    <section class="page" id="page-how">
-      <h1 class="title">User Manual</h1>
-      <p class="subtitle">Step-by-step guide to analysing transactions, with ready-to-run demo examples.</p>
-      <p class="man-p" style="margin-top:24px">
-        Clarix scores a financial transaction for fraud risk and explains, in plain language, exactly why it
-        reached that verdict. It supports <b>Transfer</b>, <b>Cash-out</b> and <b>Cash-in</b>
-        transactions. Each one is reviewed on a confirmation screen before it is analysed.</p>
-
-      <div class="man-h">1 · Analyse a single transaction</div>
-      <div class="man-grid" id="steps"></div>
-
-      <div class="man-h">2 · Transaction types</div>
-      <table class="man">
-        <tr><th style="width:110px">Type</th><th>What it is</th><th>What to enter</th><th style="width:230px">How it is scored</th></tr>
-        <tr><td class="mono">TRANSFER</td><td>Money moved from one account to another account.</td>
-          <td>Amount, origin balance before/after, destination balance before/after.</td>
-          <td>ML ensemble + balance rules.</td></tr>
-        <tr><td class="mono">CASH_OUT</td><td>Cash withdrawal from an account (ATM / agent / teller).</td>
-          <td>Amount, account balance before/after. No destination account.</td>
-          <td>ML ensemble + balance rules.</td></tr>
-        <tr><td class="mono">CASH_IN</td><td>Cash deposited into an account. The balance should go <b>up</b> by the amount.</td>
-          <td>Amount, account balance before/after. No destination account.</td>
-          <td>Balance rules only. The ML model was not trained on deposits.</td></tr>
-      </table>
-
-      <div class="man-h">3 · Demo examples: click "Try this demo"</div>
-      <p class="man-p">Each button fills the form, opens the confirmation screen, and shows the result we expect.
-        Tick the review box, then press <b>Confirm &amp; Analyze</b>.</p>
-      <div class="man-grid" id="demos"></div>
-
-      <div class="man-h">4 · Bulk upload (CSV)</div>
-      <div class="man-grid">
-        <div class="step"><div class="step-num">1</div><div>
-          <div style="font:600 14px 'IBM Plex Sans'">Prepare the CSV</div>
-          <p style="margin:5px 0 0;font-size:13px;line-height:1.5;color:var(--muted)">Required columns:
-            <span class="mono">step, type, amount, oldbalanceOrg, newbalanceOrig, oldbalanceDest, newbalanceDest</span>.
-            Rows of type TRANSFER, CASH_OUT and CASH_IN are scored; other types are skipped.</p>
-          <button class="btn-ghost" id="dlSample" style="margin-top:10px">⬇ Download sample CSV</button></div></div>
-        <div class="step"><div class="step-num">2</div><div>
-          <div style="font:600 14px 'IBM Plex Sans'">Upload it</div>
-          <p style="margin:5px 0 0;font-size:13px;line-height:1.5;color:var(--muted)">Open <b>Bulk Upload</b>, then drag the file onto the
-            drop zone or click it to browse.</p></div></div>
-        <div class="step"><div class="step-num">3</div><div>
-          <div style="font:600 14px 'IBM Plex Sans'">Review the results</div>
-          <p style="margin:5px 0 0;font-size:13px;line-height:1.5;color:var(--muted)">See total / flagged / flag rate, sort the table by
-            clicking a column, and check the score distribution chart. With the sample file you should see
-            <b>6 analysed, 3 flagged</b>.</p></div></div>
-      </div>
-
-      <div class="man-h">5 · Reading the result</div>
-      <table class="man">
-        <tr><th style="width:110px">Tier</th><th>Meaning</th></tr>
-        <tr><td><span class="tag" style="color:#b91c1c;background:#fee2e2">HIGH</span></td><td>Score ≥ 80, or any rule check failed. Banner: <b>FRAUD DETECTED</b>.</td></tr>
-        <tr><td><span class="tag" style="color:#c2410c;background:#ffedd5">MEDIUM</span></td><td>Score 40–79. Banner: <b>FLAGGED FOR REVIEW</b>.</td></tr>
-        <tr><td><span class="tag" style="color:#15803d;background:#dcfce7">LOW</span></td><td>Score below 40 and all rule checks passed. Banner: <b>TRANSACTION LEGITIMATE</b>.</td></tr>
-      </table>
-      <p class="man-p" style="margin-top:12px">Under the verdict, <b>Why: Top Factors</b> lists the rules that fired (tag <span class="mono">RULE</span>)
-        and the features that raised or lowered the risk. <b>View Full Details</b> shows the raw fields, computed
-        features and the score from each model.</p>
-    </section>
-
-    <!-- PAGE: SINGLE TRANSACTION -->
-    <section class="page active" id="page-single">
-      <h1 class="title">Single Transaction</h1>
-      <p class="subtitle">Score one transaction and see the reasoning behind the verdict.</p>
-      <div style="display:grid;grid-template-columns:360px 1fr;gap:24px;margin-top:24px;align-items:start">
-        <!-- INPUT -->
-        <div class="card">
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px">
-            <button class="btn-ex btn-fraud" id="exFraud">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m13 2-9 12h7l-1 8 9-12h-7z"></path></svg>Fraud example</button>
-            <button class="btn-ex btn-normal" id="exNormal">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>Normal example</button>
-          </div>
-          <label style="display:block;margin-bottom:14px">
-            <span class="lbl">Transaction Type</span>
-            <select class="fld" id="f_type">
-              <option value="TRANSFER">TRANSFER: account to account</option>
-              <option value="CASH_OUT">CASH_OUT: cash withdrawal</option>
-              <option value="CASH_IN">CASH_IN: cash deposit</option>
-            </select>
-          </label>
-          <label style="display:block;margin-bottom:14px">
-            <span class="lbl">Amount</span>
-            <input class="fld" id="f_amount" value="181240">
-          </label>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
-            <label><span class="lbl" id="l_oBefore">Origin bal. before</span><input class="fld" id="f_oBefore" value="181240"></label>
-            <label><span class="lbl" id="l_oAfter">Origin bal. after</span><input class="fld" id="f_oAfter" value="0"></label>
-          </div>
-          <div id="destFields" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
-            <label><span class="lbl" id="l_dBefore">Dest. bal. before</span><input class="fld" id="f_dBefore" value="0"></label>
-            <label><span class="lbl" id="l_dAfter">Dest. bal. after</span><input class="fld" id="f_dAfter" value="0"></label>
-          </div>
-          <div id="destNote" style="display:none;margin-bottom:14px;padding:9px 12px;background:var(--surface-2);border:1px solid var(--border);font:400 11px 'IBM Plex Mono';color:var(--muted)"></div>
-          <label style="display:block;margin-bottom:20px">
-            <span class="lbl">Step / time (hour)</span>
-            <input class="fld" id="f_step" value="1">
-          </label>
-          <button class="btn-teal" id="analyzeBtn">🔎 Analyze Transaction</button>
+    <!-- ══ SIDEBAR ══ -->
+    <aside class="sidebar">
+      <div class="sb-head">
+        <div class="sb-brand">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#14b8a6" stroke-width="1.6"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2 4 5v6c0 5 3.4 8.4 8 11 4.6-2.6 8-6 8-11V5z"></path>
+            <path d="m9 12 2 2 4-4"></path>
+          </svg>
+          <span>Clarix</span>
         </div>
-        <!-- RESULTS -->
-        <div id="results"></div>
+        <div class="sb-tag">Explainable Fraud Detection</div>
       </div>
-    </section>
+      <nav class="sb-nav" id="nav">
+        <button class="nav-btn" data-page="how">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+            stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="9"></circle>
+            <path d="M9.5 9a2.5 2.5 0 1 1 3.2 2.4c-.7.3-1.2.9-1.2 1.6v.5"></path>
+            <path d="M12 17h.01"></path>
+          </svg>
+          <span>User Manual</span>
+        </button>
+        <button class="nav-btn active" data-page="single">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h9"></path>
+            <path d="M14 3v5h5"></path>
+            <circle cx="16.5" cy="15.5" r="3"></circle>
+            <path d="m21 20-2.2-2.2"></path>
+          </svg>
+          <span>Single Transaction</span>
+        </button>
+        <button class="nav-btn" data-page="bulk">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"></path>
+            <path d="M12 3v12"></path>
+            <path d="m8 7 4-4 4 4"></path>
+          </svg>
+          <span>Bulk Upload</span>
+        </button>
+        <button class="nav-btn" data-page="about">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+            stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="9"></circle>
+            <path d="M12 11v5"></path>
+            <path d="M12 8h.01"></path>
+          </svg>
+          <span>About</span>
+        </button>
+      </nav>
+      <div class="sb-theme">
+        <div class="theme-toggle" id="themeToggle">
+          <button data-theme-set="light" class="active">☀ Light</button>
+          <button data-theme-set="dark">☾ Dark</button>
+        </div>
+      </div>
+      <div class="sb-status">
+        <span class="dot" id="statusDot" style="background:#64748b"></span>
+        <span class="txt" id="statusTxt">Checking…</span>
+      </div>
+    </aside>
 
-    <!-- PAGE: BULK UPLOAD -->
-    <section class="page" id="page-bulk">
-      <h1 class="title">Bulk Upload</h1>
-      <p class="subtitle">Score a full batch of transactions from a CSV file.</p>
-      <div class="drop" id="drop">
-        <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#0d9488" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin:0 auto"><path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"></path><path d="M12 3v13"></path><path d="m7 8 5-5 5 5"></path></svg>
-        <div style="margin-top:12px;font:600 15px 'IBM Plex Sans';color:var(--text)">Drop your CSV here</div>
-        <div style="margin-top:4px;font-size:13px;color:var(--muted-2)">or <span style="color:var(--teal);font-weight:600">browse files</span> · columns must match the transaction schema</div>
-        <input type="file" id="fileInput" accept=".csv" style="display:none">
-      </div>
-      <div id="bulkResults"></div>
-    </section>
+    <!-- ══ MAIN ══ -->
+    <main class="main">
 
-    <!-- PAGE: ABOUT -->
-    <section class="page" id="page-about">
-      <div style="max-width:900px">
-        <h1 class="title">About Clarix</h1>
-        <p class="subtitle">How the system detects and explains fraud.</p>
-        <p style="margin:24px 0 0;font-size:15px;line-height:1.7;color:var(--text-2)">
-          Clarix combines an ensemble of machine-learning models — Isolation Forest, XGBoost, and LightGBM —
-          with explainable AI (SHAP) and a rule-based layer that verifies account-balance consistency. Each
-          transaction is scored by all three models; SHAP attributes the result to specific features, and the
-          rule layer catches balance anomalies the models might miss. The dashboard then presents a single risk
-          score alongside the plain-English factors behind it, so a reviewer can understand and trust every decision.</p>
-        <div style="font:600 10px 'IBM Plex Mono';letter-spacing:.12em;text-transform:uppercase;color:var(--muted-2);margin:36px 0 14px">System Architecture</div>
-        <div id="arch" style="display:flex;align-items:stretch;gap:0;flex-wrap:wrap"></div>
-      </div>
-    </section>
+      <!-- PAGE: USER MANUAL -->
+      <section class="page" id="page-how">
+        <h1 class="title">User Manual</h1>
+        <p class="subtitle">Step-by-step guide to analysing transactions, with ready-to-run demo examples.</p>
+        <p class="man-p" style="margin-top:24px">
+          Clarix scores a financial transaction for fraud risk and explains, in plain language, exactly why it
+          reached that verdict. It supports <b>Transfer</b>, <b>Cash-out</b> and <b>Cash-in</b>
+          transactions. Each one is reviewed on a confirmation screen before it is analysed.</p>
 
-  </main>
+        <div class="man-h">1 · Analyse a single transaction</div>
+        <div class="man-grid" id="steps"></div>
 
-  <!-- ══ CONFIRMATION MODAL ══ -->
-  <div class="modal-bg" id="confirmBg" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
-    <div class="modal">
-      <div class="modal-head">
-        <div style="font:600 10px 'IBM Plex Mono';letter-spacing:.12em;text-transform:uppercase;color:var(--muted-2)">Step 2 of 2 · Review</div>
-        <div id="confirmTitle" style="font:600 18px 'IBM Plex Sans';margin-top:4px">Confirm transaction details</div>
-      </div>
-      <div class="modal-body">
-        <table class="dc" id="confirmTable"></table>
-        <div style="font:600 10px 'IBM Plex Mono';letter-spacing:.1em;text-transform:uppercase;color:var(--muted-2);margin:16px 0 2px">Pre-checks</div>
-        <div id="confirmChecks"></div>
-        <label class="ack" id="ackWrap"><input type="checkbox" id="confirmAck"> I have reviewed these details and want to analyse this transaction.</label>
-      </div>
-      <div class="modal-foot">
-        <button class="btn-ghost" id="confirmCancel">✎ Edit</button>
-        <button class="btn-teal" id="confirmOk" disabled>Confirm &amp; Analyze</button>
+        <div class="man-h">2 · Transaction types</div>
+        <table class="man">
+          <tr>
+            <th style="width:110px">Type</th>
+            <th>What it is</th>
+            <th>What to enter</th>
+            <th style="width:230px">How it is scored</th>
+          </tr>
+          <tr>
+            <td class="mono">TRANSFER</td>
+            <td>Money moved from one account to another account.</td>
+            <td>Amount, origin balance before/after, destination balance before/after.</td>
+            <td>ML ensemble + balance rules.</td>
+          </tr>
+          <tr>
+            <td class="mono">CASH_OUT</td>
+            <td>Cash withdrawal from an account (ATM / agent / teller).</td>
+            <td>Amount, account balance before/after. No destination account.</td>
+            <td>ML ensemble + balance rules.</td>
+          </tr>
+          <tr>
+            <td class="mono">CASH_IN</td>
+            <td>Cash deposited into an account. The balance should go <b>up</b> by the amount.</td>
+            <td>Amount, account balance before/after. No destination account.</td>
+            <td>Balance rules only. The ML model was not trained on deposits.</td>
+          </tr>
+        </table>
+
+        <div class="man-h">3 · Demo examples: click "Try this demo"</div>
+        <p class="man-p">Each button fills the form, opens the confirmation screen, and shows the result we expect.
+          Tick the review box, then press <b>Confirm &amp; Analyze</b>.</p>
+        <div class="man-grid" id="demos"></div>
+
+        <div class="man-h">4 · Bulk upload (CSV)</div>
+        <div class="man-grid">
+          <div class="step">
+            <div class="step-num">1</div>
+            <div>
+              <div style="font:600 14px 'IBM Plex Sans'">Prepare the CSV</div>
+              <p style="margin:5px 0 0;font-size:13px;line-height:1.5;color:var(--muted)">Required columns:
+                <span class="mono">step, type, amount, oldbalanceOrg, newbalanceOrig, oldbalanceDest,
+                  newbalanceDest</span>.
+                Rows of type TRANSFER, CASH_OUT and CASH_IN are scored; other types are skipped.
+              </p>
+              <button class="btn-ghost" id="dlSample" style="margin-top:10px">⬇ Download sample CSV</button>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">2</div>
+            <div>
+              <div style="font:600 14px 'IBM Plex Sans'">Upload it</div>
+              <p style="margin:5px 0 0;font-size:13px;line-height:1.5;color:var(--muted)">Open <b>Bulk Upload</b>, then
+                drag the file onto the
+                drop zone or click it to browse.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">3</div>
+            <div>
+              <div style="font:600 14px 'IBM Plex Sans'">Review the results</div>
+              <p style="margin:5px 0 0;font-size:13px;line-height:1.5;color:var(--muted)">See total / flagged / flag
+                rate, sort the table by
+                clicking a column, and check the score distribution chart. With the sample file you should see
+                <b>6 analysed, 3 flagged</b>.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="man-h">5 · Reading the result</div>
+        <table class="man">
+          <tr>
+            <th style="width:110px">Tier</th>
+            <th>Meaning</th>
+          </tr>
+          <tr>
+            <td><span class="tag" style="color:#b91c1c;background:#fee2e2">HIGH</span></td>
+            <td>Score ≥ 80, or any rule check failed. Banner: <b>FRAUD DETECTED</b>.</td>
+          </tr>
+          <tr>
+            <td><span class="tag" style="color:#c2410c;background:#ffedd5">MEDIUM</span></td>
+            <td>Score 40–79. Banner: <b>FLAGGED FOR REVIEW</b>.</td>
+          </tr>
+          <tr>
+            <td><span class="tag" style="color:#15803d;background:#dcfce7">LOW</span></td>
+            <td>Score below 40 and all rule checks passed. Banner: <b>TRANSACTION LEGITIMATE</b>.</td>
+          </tr>
+        </table>
+        <p class="man-p" style="margin-top:12px">Under the verdict, <b>Why: Top Factors</b> lists the rules that fired
+          (tag <span class="mono">RULE</span>)
+          and the features that raised or lowered the risk. <b>View Full Details</b> shows the raw fields, computed
+          features and the score from each model.</p>
+      </section>
+
+      <!-- PAGE: SINGLE TRANSACTION -->
+      <section class="page active" id="page-single">
+        <h1 class="title">Single Transaction</h1>
+        <p class="subtitle">Score one transaction and see the reasoning behind the verdict.</p>
+        <div style="display:grid;grid-template-columns:360px 1fr;gap:24px;margin-top:24px;align-items:start">
+          <!-- INPUT -->
+          <div class="card">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px">
+              <button class="btn-ex btn-fraud" id="exFraud">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="1.8"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <path d="m13 2-9 12h7l-1 8 9-12h-7z"></path>
+                </svg>Fraud example</button>
+              <button class="btn-ex btn-normal" id="exNormal">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="1.8"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M20 6 9 17l-5-5"></path>
+                </svg>Normal example</button>
+            </div>
+            <label style="display:block;margin-bottom:14px">
+              <span class="lbl">Transaction Type</span>
+              <select class="fld" id="f_type">
+                <option value="TRANSFER">TRANSFER: account to account</option>
+                <option value="CASH_OUT">CASH_OUT: cash withdrawal</option>
+                <option value="CASH_IN">CASH_IN: cash deposit</option>
+              </select>
+            </label>
+            <label style="display:block;margin-bottom:14px">
+              <span class="lbl">Amount</span>
+              <input class="fld" id="f_amount" value="181240">
+            </label>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+              <label><span class="lbl" id="l_oBefore">Origin bal. before</span><input class="fld" id="f_oBefore"
+                  value="181240"></label>
+              <label><span class="lbl" id="l_oAfter">Origin bal. after</span><input class="fld" id="f_oAfter"
+                  value="0"></label>
+            </div>
+            <div id="destFields" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+              <label><span class="lbl" id="l_dBefore">Dest. bal. before</span><input class="fld" id="f_dBefore"
+                  value="0"></label>
+              <label><span class="lbl" id="l_dAfter">Dest. bal. after</span><input class="fld" id="f_dAfter"
+                  value="0"></label>
+            </div>
+            <div id="destNote"
+              style="display:none;margin-bottom:14px;padding:9px 12px;background:var(--surface-2);border:1px solid var(--border);font:400 11px 'IBM Plex Mono';color:var(--muted)">
+            </div>
+            <label style="display:block;margin-bottom:20px">
+              <span class="lbl">Step / time (hour)</span>
+              <input class="fld" id="f_step" value="1">
+            </label>
+            <button class="btn-teal" id="analyzeBtn">🔎 Analyze Transaction</button>
+          </div>
+          <!-- RESULTS -->
+          <div id="results"></div>
+        </div>
+      </section>
+
+      <!-- PAGE: BULK UPLOAD -->
+      <section class="page" id="page-bulk">
+        <h1 class="title">Bulk Upload</h1>
+        <p class="subtitle">Score a full batch of transactions from a CSV file.</p>
+        <div class="drop" id="drop">
+          <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#0d9488" stroke-width="1.5"
+            stroke-linecap="round" stroke-linejoin="round" style="margin:0 auto">
+            <path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"></path>
+            <path d="M12 3v13"></path>
+            <path d="m7 8 5-5 5 5"></path>
+          </svg>
+          <div style="margin-top:12px;font:600 15px 'IBM Plex Sans';color:var(--text)">Drop your CSV here</div>
+          <div style="margin-top:4px;font-size:13px;color:var(--muted-2)">or <span
+              style="color:var(--teal);font-weight:600">browse files</span> · columns must match the transaction schema
+          </div>
+          <input type="file" id="fileInput" accept=".csv" style="display:none">
+        </div>
+        <div id="bulkResults"></div>
+      </section>
+
+      <!-- PAGE: ABOUT -->
+      <section class="page" id="page-about">
+        <div style="max-width:900px">
+          <h1 class="title">About Clarix</h1>
+          <p class="subtitle">How the system detects and explains fraud.</p>
+          <p style="margin:24px 0 0;font-size:15px;line-height:1.7;color:var(--text-2)">
+            Clarix combines an ensemble of machine-learning models — Isolation Forest, XGBoost, and LightGBM —
+            with explainable AI (SHAP) and a rule-based layer that verifies account-balance consistency. Each
+            transaction is scored by all three models; SHAP attributes the result to specific features, and the
+            rule layer catches balance anomalies the models might miss. The dashboard then presents a single risk
+            score alongside the plain-English factors behind it, so a reviewer can understand and trust every decision.
+          </p>
+          <div
+            style="font:600 10px 'IBM Plex Mono';letter-spacing:.12em;text-transform:uppercase;color:var(--muted-2);margin:36px 0 14px">
+            System Architecture</div>
+          <div id="arch" style="display:flex;align-items:stretch;gap:0;flex-wrap:wrap"></div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- ══ CONFIRMATION MODAL ══ -->
+    <div class="modal-bg" id="confirmBg" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
+      <div class="modal">
+        <div class="modal-head">
+          <div style="font:600 10px 'IBM Plex Mono';letter-spacing:.12em;text-transform:uppercase;color:var(--muted-2)">
+            Step 2 of 2 · Review</div>
+          <div id="confirmTitle" style="font:600 18px 'IBM Plex Sans';margin-top:4px">Confirm transaction details</div>
+        </div>
+        <div class="modal-body">
+          <table class="dc" id="confirmTable"></table>
+          <div
+            style="font:600 10px 'IBM Plex Mono';letter-spacing:.1em;text-transform:uppercase;color:var(--muted-2);margin:16px 0 2px">
+            Pre-checks</div>
+          <div id="confirmChecks"></div>
+          <label class="ack" id="ackWrap"><input type="checkbox" id="confirmAck"> I have reviewed these details and want
+            to analyse this transaction.</label>
+        </div>
+        <div class="modal-foot">
+          <button class="btn-ghost" id="confirmCancel">✎ Edit</button>
+          <button class="btn-teal" id="confirmOk" disabled>Confirm &amp; Analyze</button>
+        </div>
       </div>
     </div>
   </div>
-</div>
 
-<script>
-const API = "http://localhost:8000";
+  <script>
+    const API = "https://clarix-j4v7.onrender.com";
 
-const RAISED = "#dc2626", LOWERED = "#16a34a";
-const TIER = {
-  HIGH:   {color:"#dc2626", bg:"#fef2f2", border:"#dc2626", ink:"#b91c1c", icon:"⚠", verdict:"FRAUD DETECTED"},
-  MEDIUM: {color:"#ea580c", bg:"#fff7ed", border:"#ea580c", ink:"#c2410c", icon:"⚠", verdict:"FLAGGED FOR REVIEW"},
-  LOW:    {color:"#16a34a", bg:"#f0fdf4", border:"#16a34a", ink:"#15803d", icon:"✓", verdict:"TRANSACTION LEGITIMATE"},
-};
-const FEATURE_NAMES = {
-  origEmptied:"Account was emptied completely", errorBalanceOrig:"Origin balance doesn't add up",
-  errorBalanceDest:"Destination balance doesn't add up", amountToBalanceRatio:"Transfer took most of the balance",
-  amount:"Transaction amount", amountDevFromOrigMean:"Amount unusual for this account",
-  type_TRANSFER:"Transaction type", step:"Transaction time step",
-  oldbalanceOrg:"Origin balance before", newbalanceOrig:"Origin balance after",
-  oldbalanceDest:"Destination balance before", newbalanceDest:"Destination balance after",
-};
-const MODEL_LABELS = {isolation_forest:"Isolation Forest", xgboost:"XGBoost", lightgbm:"LightGBM", final:"Final (ensemble)"};
-const hname = f => FEATURE_NAMES[f] || f;
-const $ = id => document.getElementById(id);
-const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-const fmtMoney = n => { const x = Number(n); return isFinite(x) ? x.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2}) : n; };
-const num = s => { const x = parseFloat(String(s).replace(/,/g,"")); return isFinite(x)?x:0; };
+    const RAISED = "#dc2626", LOWERED = "#16a34a";
+    const TIER = {
+      HIGH: { color: "#dc2626", bg: "#fef2f2", border: "#dc2626", ink: "#b91c1c", icon: "⚠", verdict: "FRAUD DETECTED" },
+      MEDIUM: { color: "#ea580c", bg: "#fff7ed", border: "#ea580c", ink: "#c2410c", icon: "⚠", verdict: "FLAGGED FOR REVIEW" },
+      LOW: { color: "#16a34a", bg: "#f0fdf4", border: "#16a34a", ink: "#15803d", icon: "✓", verdict: "TRANSACTION LEGITIMATE" },
+    };
+    const FEATURE_NAMES = {
+      origEmptied: "Account was emptied completely", errorBalanceOrig: "Origin balance doesn't add up",
+      errorBalanceDest: "Destination balance doesn't add up", amountToBalanceRatio: "Transfer took most of the balance",
+      amount: "Transaction amount", amountDevFromOrigMean: "Amount unusual for this account",
+      type_TRANSFER: "Transaction type", step: "Transaction time step",
+      oldbalanceOrg: "Origin balance before", newbalanceOrig: "Origin balance after",
+      oldbalanceDest: "Destination balance before", newbalanceDest: "Destination balance after",
+    };
+    const MODEL_LABELS = { isolation_forest: "Isolation Forest", xgboost: "XGBoost", lightgbm: "LightGBM", final: "Final (ensemble)" };
+    const hname = f => FEATURE_NAMES[f] || f;
+    const $ = id => document.getElementById(id);
+    const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+    const fmtMoney = n => { const x = Number(n); return isFinite(x) ? x.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : n; };
+    const num = s => { const x = parseFloat(String(s).replace(/,/g, "")); return isFinite(x) ? x : 0; };
 
-/* ── THEME ── */
-function setTheme(t){
-  const app = $("app");
-  if(t==="dark") app.setAttribute("data-theme","dark"); else app.removeAttribute("data-theme");
-  document.querySelectorAll("#themeToggle button").forEach(b=>b.classList.toggle("active", b.dataset.themeSet===t));
-  try{ localStorage.setItem("clarix-theme", t); }catch(e){}
-}
-$("themeToggle").addEventListener("click", e=>{ const b=e.target.closest("button"); if(b) setTheme(b.dataset.themeSet); });
+    /* ── THEME ── */
+    function setTheme(t) {
+      const app = $("app");
+      if (t === "dark") app.setAttribute("data-theme", "dark"); else app.removeAttribute("data-theme");
+      document.querySelectorAll("#themeToggle button").forEach(b => b.classList.toggle("active", b.dataset.themeSet === t));
+      try { localStorage.setItem("clarix-theme", t); } catch (e) { }
+    }
+    $("themeToggle").addEventListener("click", e => { const b = e.target.closest("button"); if (b) setTheme(b.dataset.themeSet); });
 
-/* ── NAV ── */
-function goPage(p){
-  document.querySelectorAll(".nav-btn").forEach(b=>b.classList.toggle("active", b.dataset.page===p));
-  document.querySelectorAll(".page").forEach(s=>s.classList.toggle("active", s.id==="page-"+p));
-}
-$("nav").addEventListener("click", e=>{ const b=e.target.closest(".nav-btn"); if(b) goPage(b.dataset.page); });
+    /* ── NAV ── */
+    function goPage(p) {
+      document.querySelectorAll(".nav-btn").forEach(b => b.classList.toggle("active", b.dataset.page === p));
+      document.querySelectorAll(".page").forEach(s => s.classList.toggle("active", s.id === "page-" + p));
+    }
+    $("nav").addEventListener("click", e => { const b = e.target.closest(".nav-btn"); if (b) goPage(b.dataset.page); });
 
-/* ── API STATUS ── */
-async function checkStatus(){
-  try{
-    const r = await fetch(API+"/", {method:"GET"});
-    if(r.ok){ $("statusDot").style.background="#22c55e"; $("statusDot").style.boxShadow="0 0 8px #22c55e";
-      $("statusTxt").textContent="API Connected"; return true; }
-  }catch(e){}
-  $("statusDot").style.background="#ef4444"; $("statusDot").style.boxShadow="0 0 8px #ef4444";
-  $("statusTxt").textContent="API Offline"; return false;
-}
+    /* ── API STATUS ── */
+    async function checkStatus() {
+      try {
+        const r = await fetch(API + "/", { method: "GET" });
+        if (r.ok) {
+          $("statusDot").style.background = "#22c55e"; $("statusDot").style.boxShadow = "0 0 8px #22c55e";
+          $("statusTxt").textContent = "API Connected"; return true;
+        }
+      } catch (e) { }
+      $("statusDot").style.background = "#ef4444"; $("statusDot").style.boxShadow = "0 0 8px #ef4444";
+      $("statusTxt").textContent = "API Offline"; return false;
+    }
 
-/* ── GAUGE (SVG, ported from design) ── */
-function gaugeSVG(score){
-  const cx=90, cy=90, r=74, sw=15;
-  const ink = getComputedStyle($("app")).getPropertyValue("--gauge-ink").trim() || "#0f1728";
-  const track = getComputedStyle($("app")).getPropertyValue("--gauge-track").trim() || "#e3e9f1";
-  const ang = v => 135 + (v/100)*270;
-  const polar = (a,rr)=>{ const rad=a*Math.PI/180; return [cx+rr*Math.cos(rad), cy+rr*Math.sin(rad)]; };
-  const arc = (v0,v1,rr)=>{ const [x0,y0]=polar(ang(v0),rr),[x1,y1]=polar(ang(v1),rr);
-    const large=(ang(v1)-ang(v0))>180?1:0; return `M ${x0} ${y0} A ${rr} ${rr} 0 ${large} 1 ${x1} ${y1}`; };
-  const [nx,ny]=polar(ang(score), r-6);
-  return `<svg width="180" height="180" viewBox="0 0 180 180">
-    <path d="${arc(0,100,r)}" stroke="${track}" stroke-width="${sw}" fill="none"/>
-    <path d="${arc(0,40,r)}" stroke="#16a34a" stroke-width="${sw}" fill="none" stroke-linecap="butt"/>
-    <path d="${arc(40,80,r)}" stroke="#f59e0b" stroke-width="${sw}" fill="none" stroke-linecap="butt"/>
-    <path d="${arc(80.5,100,r)}" stroke="#dc2626" stroke-width="${sw}" fill="none" stroke-linecap="butt"/>
+    /* ── GAUGE (SVG, ported from design) ── */
+    function gaugeSVG(score) {
+      const cx = 90, cy = 90, r = 74, sw = 15;
+      const ink = getComputedStyle($("app")).getPropertyValue("--gauge-ink").trim() || "#0f1728";
+      const track = getComputedStyle($("app")).getPropertyValue("--gauge-track").trim() || "#e3e9f1";
+      const ang = v => 135 + (v / 100) * 270;
+      const polar = (a, rr) => { const rad = a * Math.PI / 180; return [cx + rr * Math.cos(rad), cy + rr * Math.sin(rad)]; };
+      const arc = (v0, v1, rr) => {
+        const [x0, y0] = polar(ang(v0), rr), [x1, y1] = polar(ang(v1), rr);
+        const large = (ang(v1) - ang(v0)) > 180 ? 1 : 0; return `M ${x0} ${y0} A ${rr} ${rr} 0 ${large} 1 ${x1} ${y1}`;
+      };
+      const [nx, ny] = polar(ang(score), r - 6);
+      return `<svg width="180" height="180" viewBox="0 0 180 180">
+    <path d="${arc(0, 100, r)}" stroke="${track}" stroke-width="${sw}" fill="none"/>
+    <path d="${arc(0, 40, r)}" stroke="#16a34a" stroke-width="${sw}" fill="none" stroke-linecap="butt"/>
+    <path d="${arc(40, 80, r)}" stroke="#f59e0b" stroke-width="${sw}" fill="none" stroke-linecap="butt"/>
+    <path d="${arc(80.5, 100, r)}" stroke="#dc2626" stroke-width="${sw}" fill="none" stroke-linecap="butt"/>
     <line x1="${cx}" y1="${cy}" x2="${nx}" y2="${ny}" stroke="${ink}" stroke-width="3" stroke-linecap="round"/>
     <circle cx="${cx}" cy="${cy}" r="7" fill="${ink}"/>
     <circle cx="${cx}" cy="${cy}" r="3" fill="${TIER.HIGH.color}"/>
   </svg>`;
-}
+    }
 
-/* ── SUMMARY TEXT ── */
-function summaryText(res){
-  const fb = res.flagged_by || {};
-  if(res.scored_by==="rules")
-    return res.is_fraud
-      ? "The deposit doesn't reconcile with the account balance, so the rule checks flagged it. (Deposits are judged by rule checks only, not the ML model.)"
-      : "The deposit reconciles with the account balance and every rule check passed. (Deposits are judged by rule checks only, not the ML model.)";
-  if(res.is_fraud && fb.rules && fb.model)
-    return "Both the deterministic rule checks and the machine-learning model flagged this transaction as fraudulent.";
-  if(res.is_fraud && fb.rules)
-    return "Rule checks flagged this transaction — the balances don't reconcile or the account behaviour is anomalous, even though the model score alone stayed below threshold.";
-  if(res.is_fraud && fb.model)
-    return "The ensemble model scored this transaction above the fraud threshold.";
-  return "Balances reconcile and no rules fired; the model's fraud probability is low. No meaningful fraud signal detected.";
-}
+    /* ── SUMMARY TEXT ── */
+    function summaryText(res) {
+      const fb = res.flagged_by || {};
+      if (res.scored_by === "rules")
+        return res.is_fraud
+          ? "The deposit doesn't reconcile with the account balance, so the rule checks flagged it. (Deposits are judged by rule checks only, not the ML model.)"
+          : "The deposit reconciles with the account balance and every rule check passed. (Deposits are judged by rule checks only, not the ML model.)";
+      if (res.is_fraud && fb.rules && fb.model)
+        return "Both the deterministic rule checks and the machine-learning model flagged this transaction as fraudulent.";
+      if (res.is_fraud && fb.rules)
+        return "Rule checks flagged this transaction — the balances don't reconcile or the account behaviour is anomalous, even though the model score alone stayed below threshold.";
+      if (res.is_fraud && fb.model)
+        return "The ensemble model scored this transaction above the fraud threshold.";
+      return "Balances reconcile and no rules fired; the model's fraud probability is low. No meaningful fraud signal detected.";
+    }
 
-/* ── RENDER SINGLE RESULT ── */
-function renderResult(res){
-  const tier = TIER[res.risk_tier] || TIER.LOW;
-  const score = Math.round((res.risk_score||0)*100);
-  const tx = res.transaction || {};
-  const rules = res.rules_fired || [];
-  const expl = res.explanation || [];
-  const ms = res.model_scores || {};
+    /* ── RENDER SINGLE RESULT ── */
+    function renderResult(res) {
+      const tier = TIER[res.risk_tier] || TIER.LOW;
+      const score = Math.round((res.risk_score || 0) * 100);
+      const tx = res.transaction || {};
+      const rules = res.rules_fired || [];
+      const expl = res.explanation || [];
+      const ms = res.model_scores || {};
 
-  // factors: rules first (raised), then SHAP drivers
-  let factors = rules.map(txt => ({up:true, label:txt, tag:"RULE"}));
-  factors = factors.concat(expl.map(e => ({up:e.impact>0 || e.effect==="raised risk",
-    label:hname(e.feature), tag:(e.impact>0||e.effect==="raised risk")?"RAISES RISK":"LOWERS RISK"})));
-  const factorsHTML = factors.length ? factors.map(f=>{
-    const c=f.up?RAISED:LOWERED, bg=f.up?"#fef2f2":"#f0fdf4", bd=f.up?"#fecaca":"#bbf7d0",
-      badge=f.up?"#fee2e2":"#dcfce7", arrow=f.up?"▲":"▼";
-    return `<div class="factor" style="background:${bg};border:1px solid ${bd};border-left:4px solid ${c}">
+      // factors: rules first (raised), then SHAP drivers
+      let factors = rules.map(txt => ({ up: true, label: txt, tag: "RULE" }));
+      factors = factors.concat(expl.map(e => ({
+        up: e.impact > 0 || e.effect === "raised risk",
+        label: hname(e.feature), tag: (e.impact > 0 || e.effect === "raised risk") ? "RAISES RISK" : "LOWERS RISK"
+      })));
+      const factorsHTML = factors.length ? factors.map(f => {
+        const c = f.up ? RAISED : LOWERED, bg = f.up ? "#fef2f2" : "#f0fdf4", bd = f.up ? "#fecaca" : "#bbf7d0",
+          badge = f.up ? "#fee2e2" : "#dcfce7", arrow = f.up ? "▲" : "▼";
+        return `<div class="factor" style="background:${bg};border:1px solid ${bd};border-left:4px solid ${c}">
       <span class="badge" style="background:${badge};color:${c}">${arrow}</span>
       <span class="flabel" style="color:#1e293b">${esc(f.label)}</span>
       <span class="fimpact" style="color:${c};background:${badge}">${f.tag}</span></div>`;
-  }).join("") : `<div class="muted" style="font-size:13px">No individual factors returned.</div>`;
+      }).join("") : `<div class="muted" style="font-size:13px">No individual factors returned.</div>`;
 
-  // contribution bars from SHAP (signed impact)
-  const bars = expl.map(e=>({label:e.feature, v:Number(e.impact)}))
-                   .sort((a,b)=>Math.abs(b.v)-Math.abs(a.v));
-  const maxAbs = Math.max(0.0001, ...bars.map(b=>Math.abs(b.v)));
-  const barsHTML = bars.map(b=>{
-    const c=b.v>0?RAISED:LOWERED, w=Math.round(Math.abs(b.v)/maxAbs*100);
-    return `<div class="bar-row">
+      // contribution bars from SHAP (signed impact)
+      const bars = expl.map(e => ({ label: e.feature, v: Number(e.impact) }))
+        .sort((a, b) => Math.abs(b.v) - Math.abs(a.v));
+      const maxAbs = Math.max(0.0001, ...bars.map(b => Math.abs(b.v)));
+      const barsHTML = bars.map(b => {
+        const c = b.v > 0 ? RAISED : LOWERED, w = Math.round(Math.abs(b.v) / maxAbs * 100);
+        return `<div class="bar-row">
       <span class="blabel">${esc(b.label)}</span>
       <div class="bar-track"><div style="width:${w}%;height:14px;background:${c}"></div></div>
-      <span class="bar-val" style="color:${c}">${(b.v>0?"+":"")+b.v.toFixed(2)}</span></div>`;
-  }).join("");
+      <span class="bar-val" style="color:${c}">${(b.v > 0 ? "+" : "") + b.v.toFixed(2)}</span></div>`;
+      }).join("");
 
-  // details tables
-  const rawRows = [["type",tx.type],["amount",fmtMoney(tx.amount)],["oldbalanceOrg",fmtMoney(tx.oldbalanceOrg)],
-    ["newbalanceOrig",fmtMoney(tx.newbalanceOrig)],["oldbalanceDest",fmtMoney(tx.oldbalanceDest)],
-    ["newbalanceDest",fmtMoney(tx.newbalanceDest)],["step",tx.step]];  const rawHTML = rawRows.map(r=>`<tr><td style="color:var(--muted);width:55%">${esc(r[0])}</td><td style="color:var(--text)">${esc(r[1])}</td></tr>`).join("");
-  const compHTML = Object.entries(res.features||{}).map(([k,v])=>
-    `<tr><td style="color:var(--muted);width:55%">${esc(hname(k))}</td><td style="color:var(--text)">${esc(typeof v==="number"?v.toLocaleString("en-US",{maximumFractionDigits:4}):v)}</td></tr>`).join("");
-  const modelHTML = Object.entries(ms).map(([k,v],i,arr)=>{
-    const last = k==="final";
-    return `<tr style="${last?"background:var(--surface-2);font-weight:600":""}"><td style="color:var(--text-2)">${esc(MODEL_LABELS[k]||k)}</td><td style="text-align:right;color:var(--text);font-weight:600">${Number(v).toFixed(2)}</td></tr>`;
-  }).join("");
+      // details tables
+      const rawRows = [["type", tx.type], ["amount", fmtMoney(tx.amount)], ["oldbalanceOrg", fmtMoney(tx.oldbalanceOrg)],
+      ["newbalanceOrig", fmtMoney(tx.newbalanceOrig)], ["oldbalanceDest", fmtMoney(tx.oldbalanceDest)],
+      ["newbalanceDest", fmtMoney(tx.newbalanceDest)], ["step", tx.step]]; const rawHTML = rawRows.map(r => `<tr><td style="color:var(--muted);width:55%">${esc(r[0])}</td><td style="color:var(--text)">${esc(r[1])}</td></tr>`).join("");
+      const compHTML = Object.entries(res.features || {}).map(([k, v]) =>
+        `<tr><td style="color:var(--muted);width:55%">${esc(hname(k))}</td><td style="color:var(--text)">${esc(typeof v === "number" ? v.toLocaleString("en-US", { maximumFractionDigits: 4 }) : v)}</td></tr>`).join("");
+      const modelHTML = Object.entries(ms).map(([k, v], i, arr) => {
+        const last = k === "final";
+        return `<tr style="${last ? "background:var(--surface-2);font-weight:600" : ""}"><td style="color:var(--text-2)">${esc(MODEL_LABELS[k] || k)}</td><td style="text-align:right;color:var(--text);font-weight:600">${Number(v).toFixed(2)}</td></tr>`;
+      }).join("");
 
-  const arrowColor = res.risk_tier==="LOW" ? "var(--muted-2)" : tier.border;
-  const bal = (a,b) => `${fmtMoney(a)} → ${fmtMoney(b)}`;
-  const flow = {
-    CASH_IN:  [["Cash deposit","Branch / agent"], ["Account", bal(tx.oldbalanceOrg,tx.newbalanceOrig)]],
-    CASH_OUT: [["Account", bal(tx.oldbalanceOrg,tx.newbalanceOrig)], ["Cash withdrawal","ATM / agent"]],  }[tx.type] || [["Origin Account", bal(tx.oldbalanceOrg,tx.newbalanceOrig)], ["Destination Account", bal(tx.oldbalanceDest,tx.newbalanceDest)]];
+      const arrowColor = res.risk_tier === "LOW" ? "var(--muted-2)" : tier.border;
+      const bal = (a, b) => `${fmtMoney(a)} → ${fmtMoney(b)}`;
+      const flow = {
+        CASH_IN: [["Cash deposit", "Branch / agent"], ["Account", bal(tx.oldbalanceOrg, tx.newbalanceOrig)]],
+        CASH_OUT: [["Account", bal(tx.oldbalanceOrg, tx.newbalanceOrig)], ["Cash withdrawal", "ATM / agent"]],
+      }[tx.type] || [["Origin Account", bal(tx.oldbalanceOrg, tx.newbalanceOrig)], ["Destination Account", bal(tx.oldbalanceDest, tx.newbalanceDest)]];
 
-  $("results").innerHTML = `
+      $("results").innerHTML = `
   <div style="display:flex;flex-direction:column;gap:16px">
     <div class="banner" style="background:${tier.bg};border-left:6px solid ${tier.border};color:${tier.ink}">
       <span style="font-size:22px">${tier.icon}</span>
@@ -539,13 +1236,13 @@ function renderResult(res){
       <div style="display:flex;flex-direction:column;gap:8px">${factorsHTML}</div>
     </div>
 
-    ${bars.length?`<div class="card">
+    ${bars.length ? `<div class="card">
       <div style="font:600 13px 'IBM Plex Sans';margin-bottom:16px">Feature Contributions</div>
       <div style="display:flex;flex-direction:column;gap:12px">${barsHTML}</div>
       <div style="display:flex;gap:18px;margin-top:16px;font:500 10px 'IBM Plex Mono';letter-spacing:.05em;color:var(--muted-2)">
         <span style="display:flex;align-items:center;gap:6px"><span style="width:10px;height:10px;background:#dc2626"></span>Raised risk</span>
         <span style="display:flex;align-items:center;gap:6px"><span style="width:10px;height:10px;background:#16a34a"></span>Lowered risk</span>
-      </div></div>`:""}
+      </div></div>`: ""}
 
     <div class="card">
       <div style="font:600 13px 'IBM Plex Sans';margin-bottom:18px">Transaction Flow</div>
@@ -554,7 +1251,7 @@ function renderResult(res){
         <div style="flex:none;display:flex;flex-direction:column;align-items:center;width:150px">
           <span style="font:600 11px 'IBM Plex Mono';color:${arrowColor};margin-bottom:2px">${fmtMoney(tx.amount)}</span>
           <svg width="150" height="20" viewBox="0 0 150 20"><line x1="2" y1="10" x2="138" y2="10" stroke="${arrowColor}" stroke-width="2"/><path d="M138 4 148 10 138 16" fill="none" stroke="${arrowColor}" stroke-width="2"/></svg>
-          <span style="font:500 9px 'IBM Plex Mono';letter-spacing:.1em;text-transform:uppercase;color:var(--muted-2);margin-top:2px">${esc(tx.type||"")}</span>
+          <span style="font:500 9px 'IBM Plex Mono';letter-spacing:.1em;text-transform:uppercase;color:var(--muted-2);margin-top:2px">${esc(tx.type || "")}</span>
         </div>
         <div class="flow-box"><div class="flow-cap" style="overflow-wrap:anywhere">${esc(flow[1][0])}</div><div class="flow-val">${esc(flow[1][1])}</div></div>
       </div>
@@ -569,203 +1266,212 @@ function renderResult(res){
           <table class="dc">${compHTML}</table></div>
         <div><div style="font:600 10px 'IBM Plex Mono';letter-spacing:.1em;text-transform:uppercase;color:var(--muted-2);margin:14px 0 8px">Model breakdown</div>
           ${modelHTML ? `<table class="dc"><tr style="background:var(--surface-2)"><th style="text-align:left;color:var(--muted)">Model</th><th style="text-align:right;color:var(--muted)">Score</th></tr>${modelHTML}</table>`
-            : `<div class="muted" style="font-size:12px">${esc(res.note || "Not scored by the ML model.")}</div>`}</div>
+          : `<div class="muted" style="font-size:12px">${esc(res.note || "Not scored by the ML model.")}</div>`}</div>
       </div>
     </div>
   </div>`;
 
-  $("detTog").addEventListener("click", ()=>{
-    const b=$("detBody"), open=b.style.display!=="none";
-    b.style.display = open?"none":"flex";
-    $("detCaret").textContent = open?"▼ show":"▲ hide";
-  });
-}
+      $("detTog").addEventListener("click", () => {
+        const b = $("detBody"), open = b.style.display !== "none";
+        b.style.display = open ? "none" : "flex";
+        $("detCaret").textContent = open ? "▼ show" : "▲ hide";
+      });
+    }
 
-/* ── TYPE-DRIVEN FIELDS ── */
-// CASH_OUT / CASH_IN move cash to / from an ATM, teller or agent, so there is no
-// tracked destination account and those fields are hidden. CASH_IN credits the
-// account, so its balance goes up.
-const NO_DEST = new Set(["CASH_OUT","CASH_IN"]);
-const TYPE_INFO = {
-  TRANSFER: {name:"Transfer", desc:"Account-to-account transfer", sign:-1,
-    lbl:["Origin bal. before","Origin bal. after","Dest. bal. before","Dest. bal. after"]},
-  CASH_OUT: {name:"Cash-out", desc:"Cash withdrawal from the account", sign:-1,
-    lbl:["Account bal. before","Account bal. after"],
-    note:"No destination account: the cash goes to an ATM, teller or agent."},
-  CASH_IN:  {name:"Cash-in", desc:"Cash deposit into the account", sign:+1,
-    lbl:["Account bal. before","Account bal. after"],
-    note:"Cash deposit: the account balance should increase by the amount. Scored by the balance rule checks (the ML model was not trained on deposits)."},};
-function updateTypeFields(){
-  const type = $("f_type").value, info = TYPE_INFO[type];
-  const hide = NO_DEST.has(type);
-  $("destFields").style.display = hide ? "none" : "grid";
-  $("destNote").style.display = hide ? "block" : "none";
-  $("destNote").textContent = info.note || "";  $("l_oBefore").textContent = info.lbl[0]; $("l_oAfter").textContent = info.lbl[1];
-  if(info.lbl[2]){ $("l_dBefore").textContent = info.lbl[2]; $("l_dAfter").textContent = info.lbl[3]; }
-}
-$("f_type").addEventListener("change", updateTypeFields);
+    /* ── TYPE-DRIVEN FIELDS ── */
+    // CASH_OUT / CASH_IN move cash to / from an ATM, teller or agent, so there is no
+    // tracked destination account and those fields are hidden. CASH_IN credits the
+    // account, so its balance goes up.
+    const NO_DEST = new Set(["CASH_OUT", "CASH_IN"]);
+    const TYPE_INFO = {
+      TRANSFER: {
+        name: "Transfer", desc: "Account-to-account transfer", sign: -1,
+        lbl: ["Origin bal. before", "Origin bal. after", "Dest. bal. before", "Dest. bal. after"]
+      },
+      CASH_OUT: {
+        name: "Cash-out", desc: "Cash withdrawal from the account", sign: -1,
+        lbl: ["Account bal. before", "Account bal. after"],
+        note: "No destination account: the cash goes to an ATM, teller or agent."
+      },
+      CASH_IN: {
+        name: "Cash-in", desc: "Cash deposit into the account", sign: +1,
+        lbl: ["Account bal. before", "Account bal. after"],
+        note: "Cash deposit: the account balance should increase by the amount. Scored by the balance rule checks (the ML model was not trained on deposits)."
+      },
+    };
+    function updateTypeFields() {
+      const type = $("f_type").value, info = TYPE_INFO[type];
+      const hide = NO_DEST.has(type);
+      $("destFields").style.display = hide ? "none" : "grid";
+      $("destNote").style.display = hide ? "block" : "none";
+      $("destNote").textContent = info.note || ""; $("l_oBefore").textContent = info.lbl[0]; $("l_oAfter").textContent = info.lbl[1];
+      if (info.lbl[2]) { $("l_dBefore").textContent = info.lbl[2]; $("l_dAfter").textContent = info.lbl[3]; }
+    }
+    $("f_type").addEventListener("change", updateTypeFields);
 
-/* ── ANALYZE ── */
-function readForm(){
-  const type = $("f_type").value;
-  const noDest = NO_DEST.has(type);
-  return {
-    step: parseInt(num($("f_step").value))||0,
-    type: type,
-    amount: num($("f_amount").value),
-    oldbalanceOrg: num($("f_oBefore").value),
-    newbalanceOrig: num($("f_oAfter").value),
-    oldbalanceDest: noDest ? 0 : num($("f_dBefore").value),
-    newbalanceDest: noDest ? 0 : num($("f_dAfter").value),
-  };
-}
+    /* ── ANALYZE ── */
+    function readForm() {
+      const type = $("f_type").value;
+      const noDest = NO_DEST.has(type);
+      return {
+        step: parseInt(num($("f_step").value)) || 0,
+        type: type,
+        amount: num($("f_amount").value),
+        oldbalanceOrg: num($("f_oBefore").value),
+        newbalanceOrig: num($("f_oAfter").value),
+        oldbalanceDest: noDest ? 0 : num($("f_dBefore").value),
+        newbalanceDest: noDest ? 0 : num($("f_dAfter").value),
+      };
+    }
 
-/* ── CONFIRMATION ── */
-// Every analysis goes through a review step: the user sees exactly what will be
-// scored plus pre-checks. Invalid input (non-numeric, zero or negative) blocks the
-// submit; suspicious-but-valid input only warns, since flagging it is the point.
-function preChecks(tx){
-  const out = [], info = TYPE_INFO[tx.type];
-  const raw = id => String($(id).value).trim();
-  const numeric = ["f_amount","f_oBefore","f_oAfter","f_step"].concat(NO_DEST.has(tx.type)?[]:["f_dBefore","f_dAfter"]);
-  const bad = numeric.filter(id => raw(id)==="" || !isFinite(Number(raw(id).replace(/,/g,""))));
-  if(bad.length) out.push({k:"err", t:"Every amount, balance and step field must be a number."});
-  if(tx.amount<=0) out.push({k:"err", t:"Amount must be greater than 0."});
-  if([tx.oldbalanceOrg,tx.newbalanceOrig,tx.oldbalanceDest,tx.newbalanceDest].some(v=>v<0))
-    out.push({k:"err", t:"Balances cannot be negative."});
+    /* ── CONFIRMATION ── */
+    // Every analysis goes through a review step: the user sees exactly what will be
+    // scored plus pre-checks. Invalid input (non-numeric, zero or negative) blocks the
+    // submit; suspicious-but-valid input only warns, since flagging it is the point.
+    function preChecks(tx) {
+      const out = [], info = TYPE_INFO[tx.type];
+      const raw = id => String($(id).value).trim();
+      const numeric = ["f_amount", "f_oBefore", "f_oAfter", "f_step"].concat(NO_DEST.has(tx.type) ? [] : ["f_dBefore", "f_dAfter"]);
+      const bad = numeric.filter(id => raw(id) === "" || !isFinite(Number(raw(id).replace(/,/g, ""))));
+      if (bad.length) out.push({ k: "err", t: "Every amount, balance and step field must be a number." });
+      if (tx.amount <= 0) out.push({ k: "err", t: "Amount must be greater than 0." });
+      if ([tx.oldbalanceOrg, tx.newbalanceOrig, tx.oldbalanceDest, tx.newbalanceDest].some(v => v < 0))
+        out.push({ k: "err", t: "Balances cannot be negative." });
 
 
-  const expected = tx.oldbalanceOrg + info.sign*tx.amount;
-  if(Math.abs(expected - tx.newbalanceOrig) > 0.01)
-    out.push({k:"warn", t:`${info.lbl[1]} is ${fmtMoney(tx.newbalanceOrig)}, but the expected value is ${fmtMoney(expected)} (${fmtMoney(tx.oldbalanceOrg)} ${info.sign>0?"+":"−"} ${fmtMoney(tx.amount)}).`});
-  else out.push({k:"ok", t:`${info.lbl[0].replace(" before","")} reconciles: ${fmtMoney(tx.oldbalanceOrg)} ${info.sign>0?"+":"−"} ${fmtMoney(tx.amount)} = ${fmtMoney(tx.newbalanceOrig)}.`});
-  if(info.sign<0 && tx.amount>tx.oldbalanceOrg) out.push({k:"warn", t:"Amount is more than the available balance."});
-  if(!NO_DEST.has(tx.type)){
-    const expD = tx.oldbalanceDest + tx.amount;
-    if(Math.abs(expD - tx.newbalanceDest) > 0.01)
-      out.push({k:"warn", t:`${info.lbl[3]} is ${fmtMoney(tx.newbalanceDest)}, but the expected value is ${fmtMoney(expD)}.`});
-    else out.push({k:"ok", t:`${info.lbl[2].replace(" before","")} reconciles: ${fmtMoney(tx.oldbalanceDest)} + ${fmtMoney(tx.amount)} = ${fmtMoney(tx.newbalanceDest)}.`});
-  }
-  if(tx.type==="CASH_IN") out.push({k:"info", t:"Deposits are scored by the balance rule checks only."});
-  if(out.some(c=>c.k==="warn")) out.push({k:"info", t:"Warnings don't stop the analysis. They are exactly what the fraud checks look for."});
-  return out;
-}
-let PENDING = null;
-function openConfirm(){
-  const tx = readForm(), info = TYPE_INFO[tx.type], checks = preChecks(tx);
-  const blocked = checks.some(c=>c.k==="err");
-  const rows = [["Type", `${tx.type} · ${info.desc}`]];
-  rows.push(["Amount", fmtMoney(tx.amount)],
-    [info.lbl[0].replace(" before",""), `${fmtMoney(tx.oldbalanceOrg)} → ${fmtMoney(tx.newbalanceOrig)}`]);
-  if(!NO_DEST.has(tx.type)) rows.push([info.lbl[2].replace(" before",""), `${fmtMoney(tx.oldbalanceDest)} → ${fmtMoney(tx.newbalanceDest)}`]);
-  rows.push(["Step / hour", tx.step]);
-  $("confirmTable").innerHTML = rows.map(r=>`<tr><td style="color:var(--muted);width:40%">${esc(r[0])}</td><td style="color:var(--text);font-weight:500">${esc(r[1])}</td></tr>`).join("");
-  const ico = {ok:"✓", warn:"⚠", err:"✕", info:"ℹ"};
-  $("confirmChecks").innerHTML = checks.map(c=>`<div class="chk ${c.k}"><span style="flex:none;font-weight:700">${ico[c.k]}</span><span>${esc(c.t)}</span></div>`).join("");
-  $("confirmAck").checked = false;
-  $("confirmAck").disabled = blocked;
-  $("ackWrap").style.opacity = blocked ? .5 : 1;
-  $("confirmOk").disabled = true;
-  $("confirmOk").textContent = blocked ? "Fix errors to continue" : "Confirm & Analyze";
-  PENDING = blocked ? null : tx;
-  $("confirmBg").classList.add("open");
-  (blocked ? $("confirmCancel") : $("confirmAck")).focus();
-}
-function closeConfirm(){ $("confirmBg").classList.remove("open"); PENDING = null; }
-$("confirmAck").addEventListener("change", ()=>{ $("confirmOk").disabled = !($("confirmAck").checked && PENDING); });
-$("confirmCancel").addEventListener("click", closeConfirm);
-$("confirmBg").addEventListener("click", e=>{ if(e.target===$("confirmBg")) closeConfirm(); });
-document.addEventListener("keydown", e=>{ if(e.key==="Escape" && $("confirmBg").classList.contains("open")) closeConfirm(); });
-$("confirmOk").addEventListener("click", ()=>{ const tx = PENDING; if(!tx) return; closeConfirm(); analyze(tx); });
-function loadingResults(msg){
-  $("results").innerHTML = `<div class="card" style="text-align:center;padding:50px 20px">
+      const expected = tx.oldbalanceOrg + info.sign * tx.amount;
+      if (Math.abs(expected - tx.newbalanceOrig) > 0.01)
+        out.push({ k: "warn", t: `${info.lbl[1]} is ${fmtMoney(tx.newbalanceOrig)}, but the expected value is ${fmtMoney(expected)} (${fmtMoney(tx.oldbalanceOrg)} ${info.sign > 0 ? "+" : "−"} ${fmtMoney(tx.amount)}).` });
+      else out.push({ k: "ok", t: `${info.lbl[0].replace(" before", "")} reconciles: ${fmtMoney(tx.oldbalanceOrg)} ${info.sign > 0 ? "+" : "−"} ${fmtMoney(tx.amount)} = ${fmtMoney(tx.newbalanceOrig)}.` });
+      if (info.sign < 0 && tx.amount > tx.oldbalanceOrg) out.push({ k: "warn", t: "Amount is more than the available balance." });
+      if (!NO_DEST.has(tx.type)) {
+        const expD = tx.oldbalanceDest + tx.amount;
+        if (Math.abs(expD - tx.newbalanceDest) > 0.01)
+          out.push({ k: "warn", t: `${info.lbl[3]} is ${fmtMoney(tx.newbalanceDest)}, but the expected value is ${fmtMoney(expD)}.` });
+        else out.push({ k: "ok", t: `${info.lbl[2].replace(" before", "")} reconciles: ${fmtMoney(tx.oldbalanceDest)} + ${fmtMoney(tx.amount)} = ${fmtMoney(tx.newbalanceDest)}.` });
+      }
+      if (tx.type === "CASH_IN") out.push({ k: "info", t: "Deposits are scored by the balance rule checks only." });
+      if (out.some(c => c.k === "warn")) out.push({ k: "info", t: "Warnings don't stop the analysis. They are exactly what the fraud checks look for." });
+      return out;
+    }
+    let PENDING = null;
+    function openConfirm() {
+      const tx = readForm(), info = TYPE_INFO[tx.type], checks = preChecks(tx);
+      const blocked = checks.some(c => c.k === "err");
+      const rows = [["Type", `${tx.type} · ${info.desc}`]];
+      rows.push(["Amount", fmtMoney(tx.amount)],
+        [info.lbl[0].replace(" before", ""), `${fmtMoney(tx.oldbalanceOrg)} → ${fmtMoney(tx.newbalanceOrig)}`]);
+      if (!NO_DEST.has(tx.type)) rows.push([info.lbl[2].replace(" before", ""), `${fmtMoney(tx.oldbalanceDest)} → ${fmtMoney(tx.newbalanceDest)}`]);
+      rows.push(["Step / hour", tx.step]);
+      $("confirmTable").innerHTML = rows.map(r => `<tr><td style="color:var(--muted);width:40%">${esc(r[0])}</td><td style="color:var(--text);font-weight:500">${esc(r[1])}</td></tr>`).join("");
+      const ico = { ok: "✓", warn: "⚠", err: "✕", info: "ℹ" };
+      $("confirmChecks").innerHTML = checks.map(c => `<div class="chk ${c.k}"><span style="flex:none;font-weight:700">${ico[c.k]}</span><span>${esc(c.t)}</span></div>`).join("");
+      $("confirmAck").checked = false;
+      $("confirmAck").disabled = blocked;
+      $("ackWrap").style.opacity = blocked ? .5 : 1;
+      $("confirmOk").disabled = true;
+      $("confirmOk").textContent = blocked ? "Fix errors to continue" : "Confirm & Analyze";
+      PENDING = blocked ? null : tx;
+      $("confirmBg").classList.add("open");
+      (blocked ? $("confirmCancel") : $("confirmAck")).focus();
+    }
+    function closeConfirm() { $("confirmBg").classList.remove("open"); PENDING = null; }
+    $("confirmAck").addEventListener("change", () => { $("confirmOk").disabled = !($("confirmAck").checked && PENDING); });
+    $("confirmCancel").addEventListener("click", closeConfirm);
+    $("confirmBg").addEventListener("click", e => { if (e.target === $("confirmBg")) closeConfirm(); });
+    document.addEventListener("keydown", e => { if (e.key === "Escape" && $("confirmBg").classList.contains("open")) closeConfirm(); });
+    $("confirmOk").addEventListener("click", () => { const tx = PENDING; if (!tx) return; closeConfirm(); analyze(tx); });
+    function loadingResults(msg) {
+      $("results").innerHTML = `<div class="card" style="text-align:center;padding:50px 20px">
     <div class="spinner"></div><div class="muted" style="margin-top:16px;font-size:13px">${esc(msg)}</div></div>`;
-}
-async function analyze(tx){
-  loadingResults("Analyzing transaction…");
-  try{
-    const r = await fetch(API+"/predict", {method:"POST", headers:{"Content-Type":"application/json"},
-      body: JSON.stringify({features: tx})});
-    if(!r.ok){ const t=await r.text(); throw new Error("Backend error ("+r.status+"): "+t); }
-    renderResult(await r.json());
-  }catch(e){
-    $("results").innerHTML = `<div class="card" style="border-left:4px solid #dc2626">
+    }
+    async function analyze(tx) {
+      loadingResults("Analyzing transaction…");
+      try {
+        const r = await fetch(API + "/predict", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ features: tx })
+        });
+        if (!r.ok) { const t = await r.text(); throw new Error("Backend error (" + r.status + "): " + t); }
+        renderResult(await r.json());
+      } catch (e) {
+        $("results").innerHTML = `<div class="card" style="border-left:4px solid #dc2626">
       <div style="font:600 13px 'IBM Plex Sans';color:#b91c1c;margin-bottom:6px">Could not analyze</div>
       <div class="muted" style="font-size:13px">${esc(e.message)}</div>
       <div class="muted" style="font-size:12px;margin-top:8px">Make sure the backend is running: <span class="mono">cd backend &amp;&amp; uvicorn app:app --port 8000</span></div></div>`;
-  }
-}
-$("analyzeBtn").addEventListener("click", openConfirm);
+      }
+    }
+    $("analyzeBtn").addEventListener("click", openConfirm);
 
-/* ── EXAMPLES ── */
-function fillForm(row){
-  if(!row) return;
-  $("f_type").value = row.type || "TRANSFER";
-  $("f_amount").value = row.amount;
-  $("f_oBefore").value = row.oldbalanceOrg;
-  $("f_oAfter").value = row.newbalanceOrig;
-  $("f_dBefore").value = row.oldbalanceDest ?? 0;
-  $("f_dAfter").value = row.newbalanceDest ?? 0;  $("f_step").value = row.step;
-  updateTypeFields();
-}
-let EXAMPLES = null;
-async function getExamples(){
-  if(EXAMPLES) return EXAMPLES;
-  const r = await fetch(API+"/examples"); EXAMPLES = await r.json(); return EXAMPLES;
-}
-async function loadExample(kind){
-  try{ const ex = await getExamples(); fillForm((ex[kind]||[])[0]); openConfirm(); }
-  catch(e){ loadingResults("Could not load example — is the backend running?"); }
-}
-$("exFraud").addEventListener("click", ()=>loadExample("fraud"));
-$("exNormal").addEventListener("click", ()=>loadExample("normal"));
+    /* ── EXAMPLES ── */
+    function fillForm(row) {
+      if (!row) return;
+      $("f_type").value = row.type || "TRANSFER";
+      $("f_amount").value = row.amount;
+      $("f_oBefore").value = row.oldbalanceOrg;
+      $("f_oAfter").value = row.newbalanceOrig;
+      $("f_dBefore").value = row.oldbalanceDest ?? 0;
+      $("f_dAfter").value = row.newbalanceDest ?? 0; $("f_step").value = row.step;
+      updateTypeFields();
+    }
+    let EXAMPLES = null;
+    async function getExamples() {
+      if (EXAMPLES) return EXAMPLES;
+      const r = await fetch(API + "/examples"); EXAMPLES = await r.json(); return EXAMPLES;
+    }
+    async function loadExample(kind) {
+      try { const ex = await getExamples(); fillForm((ex[kind] || [])[0]); openConfirm(); }
+      catch (e) { loadingResults("Could not load example — is the backend running?"); }
+    }
+    $("exFraud").addEventListener("click", () => loadExample("fraud"));
+    $("exNormal").addEventListener("click", () => loadExample("normal"));
 
-/* ── BULK ── */
-let BULK = null, sortKey="score", sortDir="desc";
-function renderBulk(){
-  if(!BULK){ $("bulkResults").innerHTML=""; return; }
-  const s = BULK.summary||{}, results = (BULK.results||[]).slice();
-  const tierOrder = {LOW:0,MEDIUM:1,HIGH:2};
-  results.sort((a,b)=>{
-    let x,y;
-    if(sortKey==="amount"){x=num(a.amount);y=num(b.amount);}
-    else if(sortKey==="tier"){x=tierOrder[a.risk_tier];y=tierOrder[b.risk_tier];}
-    else if(sortKey==="id"){x=a.index;y=b.index;}
-    else {x=a.risk_score;y=b.risk_score;}
-    const c = x>y?1:x<y?-1:0; return sortDir==="asc"?c:-c;
-  });
-  const caret = k => sortKey===k ? (sortDir==="asc"?" ↑":" ↓") : "";
-  const pill = t => {
-    const m={HIGH:[RAISED,"#fee2e2"],MEDIUM:["#ea580c","#ffedd5"],LOW:[LOWERED,"#dcfce7"]}[t];
-    return `<span style="display:inline-block;padding:2px 9px;font:600 10px 'IBM Plex Mono';letter-spacing:.06em;color:${m[0]};background:${m[1]};border:1px solid ${m[0]}33">${t}</span>`;
-  };
-  const rows = results.map(r=>{
-    const bg = r.risk_tier==="HIGH"?"background:rgba(220,38,38,.10)":r.risk_tier==="MEDIUM"?"background:rgba(234,88,12,.10)":"";
-    return `<tr style="${bg}">
+    /* ── BULK ── */
+    let BULK = null, sortKey = "score", sortDir = "desc";
+    function renderBulk() {
+      if (!BULK) { $("bulkResults").innerHTML = ""; return; }
+      const s = BULK.summary || {}, results = (BULK.results || []).slice();
+      const tierOrder = { LOW: 0, MEDIUM: 1, HIGH: 2 };
+      results.sort((a, b) => {
+        let x, y;
+        if (sortKey === "amount") { x = num(a.amount); y = num(b.amount); }
+        else if (sortKey === "tier") { x = tierOrder[a.risk_tier]; y = tierOrder[b.risk_tier]; }
+        else if (sortKey === "id") { x = a.index; y = b.index; }
+        else { x = a.risk_score; y = b.risk_score; }
+        const c = x > y ? 1 : x < y ? -1 : 0; return sortDir === "asc" ? c : -c;
+      });
+      const caret = k => sortKey === k ? (sortDir === "asc" ? " ↑" : " ↓") : "";
+      const pill = t => {
+        const m = { HIGH: [RAISED, "#fee2e2"], MEDIUM: ["#ea580c", "#ffedd5"], LOW: [LOWERED, "#dcfce7"] }[t];
+        return `<span style="display:inline-block;padding:2px 9px;font:600 10px 'IBM Plex Mono';letter-spacing:.06em;color:${m[0]};background:${m[1]};border:1px solid ${m[0]}33">${t}</span>`;
+      };
+      const rows = results.map(r => {
+        const bg = r.risk_tier === "HIGH" ? "background:rgba(220,38,38,.10)" : r.risk_tier === "MEDIUM" ? "background:rgba(234,88,12,.10)" : "";
+        return `<tr style="${bg}">
       <td style="color:var(--text);border-bottom:1px solid var(--surface-2)">TX-${r.index}</td>
-      <td style="color:var(--text-3);border-bottom:1px solid var(--surface-2)">${esc(r.type||"")}</td>
+      <td style="color:var(--text-3);border-bottom:1px solid var(--surface-2)">${esc(r.type || "")}</td>
       <td style="text-align:right;color:var(--text);border-bottom:1px solid var(--surface-2)">${fmtMoney(r.amount)}</td>
-      <td style="text-align:right;color:var(--text);font-weight:600;border-bottom:1px solid var(--surface-2)">${Math.round(r.risk_score*100)}</td>
+      <td style="text-align:right;color:var(--text);font-weight:600;border-bottom:1px solid var(--surface-2)">${Math.round(r.risk_score * 100)}</td>
       <td style="border-bottom:1px solid var(--surface-2)">${pill(r.risk_tier)}</td></tr>`;
-  }).join("");
+      }).join("");
 
-  // histogram (10 bands)
-  const bands = Array.from({length:10},(_,i)=>({label:(i*10)+"-"+(i*10+10), c:0}));
-  results.forEach(r=>{ let b=Math.min(9, Math.floor(r.risk_score*10)); bands[b].c++; });
-  const maxC = Math.max(1, ...bands.map(b=>b.c));
-  const histo = bands.map(b=>{
-    const hi=b.label==="80-90"||b.label==="90-100", mid=b.label==="60-70"||b.label==="70-80";
-    const col=hi?"#dc2626":mid?"#f59e0b":"#0d9488";
-    return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:6px">
-      <div style="width:100%;height:${Math.round(b.c/maxC*100)}%;min-height:3px;background:${col}" title="${b.c}"></div>
+      // histogram (10 bands)
+      const bands = Array.from({ length: 10 }, (_, i) => ({ label: (i * 10) + "-" + (i * 10 + 10), c: 0 }));
+      results.forEach(r => { let b = Math.min(9, Math.floor(r.risk_score * 10)); bands[b].c++; });
+      const maxC = Math.max(1, ...bands.map(b => b.c));
+      const histo = bands.map(b => {
+        const hi = b.label === "80-90" || b.label === "90-100", mid = b.label === "60-70" || b.label === "70-80";
+        const col = hi ? "#dc2626" : mid ? "#f59e0b" : "#0d9488";
+        return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:6px">
+      <div style="width:100%;height:${Math.round(b.c / maxC * 100)}%;min-height:3px;background:${col}" title="${b.c}"></div>
       <span style="font:400 9px 'IBM Plex Mono';color:var(--muted-2)">${b.label}</span></div>`;
-  }).join("");
+      }).join("");
 
-  $("bulkResults").innerHTML = `
+      $("bulkResults").innerHTML = `
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:22px">
-      <div class="stat"><div class="k">Total Analyzed</div><div class="v">${(s.total||0).toLocaleString()}</div></div>
-      <div class="stat" style="border-top:3px solid #dc2626"><div class="k">Flagged</div><div class="v" style="color:#dc2626">${(s.flagged||0).toLocaleString()}</div></div>
-      <div class="stat"><div class="k">Flag Rate</div><div class="v">${s.flag_rate||0}%</div></div>
+      <div class="stat"><div class="k">Total Analyzed</div><div class="v">${(s.total || 0).toLocaleString()}</div></div>
+      <div class="stat" style="border-top:3px solid #dc2626"><div class="k">Flagged</div><div class="v" style="color:#dc2626">${(s.flagged || 0).toLocaleString()}</div></div>
+      <div class="stat"><div class="k">Flag Rate</div><div class="v">${s.flag_rate || 0}%</div></div>
     </div>
     <div class="card" style="padding:0;margin-top:22px">
       <div style="padding:14px 18px;border-bottom:1px solid var(--border);font:600 13px 'IBM Plex Sans'">Results <span class="mono" style="font-size:11px;color:var(--muted-2);margin-left:6px">click a column to sort</span></div>
@@ -785,111 +1491,128 @@ function renderBulk(){
       <div style="display:flex;align-items:flex-end;gap:8px;height:160px">${histo}</div>
     </div>`;
 
-  $("bulkResults").querySelectorAll("th.sortable").forEach(th=>th.addEventListener("click",()=>{
-    const k=th.dataset.sort;
-    if(sortKey===k) sortDir = sortDir==="desc"?"asc":"desc"; else { sortKey=k; sortDir="desc"; }
-    renderBulk();
-  }));
-}
-async function uploadCSV(file){
-  if(!file) return;
-  $("bulkResults").innerHTML = `<div class="card" style="text-align:center;padding:50px 20px;margin-top:22px"><div class="spinner"></div><div class="muted" style="margin-top:16px;font-size:13px">Scoring ${esc(file.name)}…</div></div>`;
-  try{
-    const fd = new FormData(); fd.append("file", file, file.name);
-    const r = await fetch(API+"/predict-batch", {method:"POST", body:fd});
-    if(!r.ok){ const t=await r.text(); throw new Error("Backend error ("+r.status+"): "+t); }
-    BULK = await r.json(); sortKey="score"; sortDir="desc"; renderBulk();
-  }catch(e){
-    $("bulkResults").innerHTML = `<div class="card" style="border-left:4px solid #dc2626;margin-top:22px">
+      $("bulkResults").querySelectorAll("th.sortable").forEach(th => th.addEventListener("click", () => {
+        const k = th.dataset.sort;
+        if (sortKey === k) sortDir = sortDir === "desc" ? "asc" : "desc"; else { sortKey = k; sortDir = "desc"; }
+        renderBulk();
+      }));
+    }
+    async function uploadCSV(file) {
+      if (!file) return;
+      $("bulkResults").innerHTML = `<div class="card" style="text-align:center;padding:50px 20px;margin-top:22px"><div class="spinner"></div><div class="muted" style="margin-top:16px;font-size:13px">Scoring ${esc(file.name)}…</div></div>`;
+      try {
+        const fd = new FormData(); fd.append("file", file, file.name);
+        const r = await fetch(API + "/predict-batch", { method: "POST", body: fd });
+        if (!r.ok) { const t = await r.text(); throw new Error("Backend error (" + r.status + "): " + t); }
+        BULK = await r.json(); sortKey = "score"; sortDir = "desc"; renderBulk();
+      } catch (e) {
+        $("bulkResults").innerHTML = `<div class="card" style="border-left:4px solid #dc2626;margin-top:22px">
       <div style="font:600 13px 'IBM Plex Sans';color:#b91c1c;margin-bottom:6px">Could not score file</div>
       <div class="muted" style="font-size:13px">${esc(e.message)}</div></div>`;
-  }
-}
-$("drop").addEventListener("click", ()=>$("fileInput").click());
-$("fileInput").addEventListener("change", e=>uploadCSV(e.target.files[0]));
-$("drop").addEventListener("dragover", e=>{ e.preventDefault(); $("drop").classList.add("drag"); });
-$("drop").addEventListener("dragleave", ()=>$("drop").classList.remove("drag"));
-$("drop").addEventListener("drop", e=>{ e.preventDefault(); $("drop").classList.remove("drag");
-  if(e.dataTransfer.files[0]) uploadCSV(e.dataTransfer.files[0]); });
+      }
+    }
+    $("drop").addEventListener("click", () => $("fileInput").click());
+    $("fileInput").addEventListener("change", e => uploadCSV(e.target.files[0]));
+    $("drop").addEventListener("dragover", e => { e.preventDefault(); $("drop").classList.add("drag"); });
+    $("drop").addEventListener("dragleave", () => $("drop").classList.remove("drag"));
+    $("drop").addEventListener("drop", e => {
+      e.preventDefault(); $("drop").classList.remove("drag");
+      if (e.dataTransfer.files[0]) uploadCSV(e.dataTransfer.files[0]);
+    });
 
-/* ── STATIC CONTENT: user manual + architecture ── */
-function icon(paths){ return `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${paths.map(p=>`<path d="${p}"></path>`).join("")}</svg>`; }
-const STEPS = [
-  {n:"1", title:"Open Single Transaction", desc:"Click <b>Single Transaction</b> in the sidebar. Use <b>Fraud example</b> / <b>Normal example</b> for a quick sample, or enter the details yourself.", icon:icon(["M9 11l3 3 8-8","M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9"])},
-  {n:"2", title:"Choose the type", desc:"Pick <b>TRANSFER</b>, <b>CASH_OUT</b> or <b>CASH_IN</b>. The form adapts: cash types hide the destination account.", icon:icon(["M4 6h16","M4 12h10","M4 18h6"])},
-  {n:"3", title:"Enter the details", desc:"Amount, balances before / after, and the step (hour).", icon:icon(["M12 20h9","M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"])},
-  {n:"4", title:"Click Analyze → review", desc:"A confirmation screen shows every value plus pre-checks: <b>✓</b> passes, <b>⚠</b> suspicious, <b>✕</b> invalid (blocks submit). Click <b>Edit</b> to go back and fix anything.", icon:icon(["M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7z","m9 12 2 2 4-4"])},
-  {n:"5", title:"Confirm & Analyze", desc:"Tick <b>I have reviewed these details</b>, then press <b>Confirm &amp; Analyze</b>. Clarix scores the transaction instantly.", icon:icon(["M13 2 3 14h7l-1 8 10-12h-7z"])},
-  {n:"6", title:"Read verdict & reasons", desc:"The banner shows the verdict, the gauge shows the 0–100 risk score, and <b>Why: Top Factors</b> explains it. Expand <b>View Full Details</b> for the raw numbers.", icon:icon(["M5 4h14v12H7l-3 3z"])},
-];
-// Demo inputs; the expected verdicts were verified against the shipped models.
-const DEMOS = [
-  {title:"Transfer: account drained", tier:"HIGH", tx:{step:1,type:"TRANSFER",amount:181240,oldbalanceOrg:181240,newbalanceOrig:0,oldbalanceDest:0,newbalanceDest:0},
-    why:"The whole balance leaves the account and the receiver's balance doesn't change: a classic PaySim fraud pattern."},
-  {title:"Transfer: normal", tier:"LOW", tx:{step:1,type:"TRANSFER",amount:5000,oldbalanceOrg:90000,newbalanceOrig:85000,oldbalanceDest:20000,newbalanceDest:25000},
-    why:"Both sides reconcile: 90,000 − 5,000 and 20,000 + 5,000."},
-  {title:"Cash-out: account emptied", tier:"HIGH", tx:{step:1,type:"CASH_OUT",amount:75000,oldbalanceOrg:75000,newbalanceOrig:0},
-    why:"The entire balance is withdrawn as cash. The model scores it at 100 and the 'account emptied' rule fires."},
-  {title:"Cash-out: normal", tier:"LOW", tx:{step:1,type:"CASH_OUT",amount:1200,oldbalanceOrg:50000,newbalanceOrig:48800},
-    why:"A small withdrawal that reconciles: 50,000 − 1,200 = 48,800."},
-  {title:"Cash-in: normal deposit", tier:"LOW", tx:{step:1,type:"CASH_IN",amount:2500,oldbalanceOrg:10000,newbalanceOrig:12500},
-    why:"The balance rises by exactly the deposit: 10,000 + 2,500 = 12,500."},
-  {title:"Cash-in: balance mismatch", tier:"HIGH", tx:{step:1,type:"CASH_IN",amount:2500,oldbalanceOrg:10000,newbalanceOrig:20000},
-    why:"2,500 is deposited but the balance jumps by 10,000, so the 'deposit not reflected correctly' rule fires. The confirmation screen warns about this first."},
-];
-const DEMO_TAG = {HIGH:["#b91c1c","#fee2e2","Expected: HIGH · FRAUD DETECTED"], LOW:["#15803d","#dcfce7","Expected: LOW · TRANSACTION LEGITIMATE"]};
-const demoVals = tx => {
-  const p = [`type ${tx.type}`];
-  p.push(`amount ${fmtMoney(tx.amount)}`, `${NO_DEST.has(tx.type)?"account":"origin"} ${fmtMoney(tx.oldbalanceOrg)} → ${fmtMoney(tx.newbalanceOrig)}`);
-  if(!NO_DEST.has(tx.type)) p.push(`dest ${fmtMoney(tx.oldbalanceDest)} → ${fmtMoney(tx.newbalanceDest)}`);
-  return p.join("<br>");
-};
-$("demos").innerHTML = DEMOS.map((d,i)=>{ const t=DEMO_TAG[d.tier]; return `<div class="demo">
+    /* ── STATIC CONTENT: user manual + architecture ── */
+    function icon(paths) { return `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${paths.map(p => `<path d="${p}"></path>`).join("")}</svg>`; }
+    const STEPS = [
+      { n: "1", title: "Open Single Transaction", desc: "Click <b>Single Transaction</b> in the sidebar. Use <b>Fraud example</b> / <b>Normal example</b> for a quick sample, or enter the details yourself.", icon: icon(["M9 11l3 3 8-8", "M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9"]) },
+      { n: "2", title: "Choose the type", desc: "Pick <b>TRANSFER</b>, <b>CASH_OUT</b> or <b>CASH_IN</b>. The form adapts: cash types hide the destination account.", icon: icon(["M4 6h16", "M4 12h10", "M4 18h6"]) },
+      { n: "3", title: "Enter the details", desc: "Amount, balances before / after, and the step (hour).", icon: icon(["M12 20h9", "M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"]) },
+      { n: "4", title: "Click Analyze → review", desc: "A confirmation screen shows every value plus pre-checks: <b>✓</b> passes, <b>⚠</b> suspicious, <b>✕</b> invalid (blocks submit). Click <b>Edit</b> to go back and fix anything.", icon: icon(["M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7z", "m9 12 2 2 4-4"]) },
+      { n: "5", title: "Confirm & Analyze", desc: "Tick <b>I have reviewed these details</b>, then press <b>Confirm &amp; Analyze</b>. Clarix scores the transaction instantly.", icon: icon(["M13 2 3 14h7l-1 8 10-12h-7z"]) },
+      { n: "6", title: "Read verdict & reasons", desc: "The banner shows the verdict, the gauge shows the 0–100 risk score, and <b>Why: Top Factors</b> explains it. Expand <b>View Full Details</b> for the raw numbers.", icon: icon(["M5 4h14v12H7l-3 3z"]) },
+    ];
+    // Demo inputs; the expected verdicts were verified against the shipped models.
+    const DEMOS = [
+      {
+        title: "Transfer: account drained", tier: "HIGH", tx: { step: 1, type: "TRANSFER", amount: 181240, oldbalanceOrg: 181240, newbalanceOrig: 0, oldbalanceDest: 0, newbalanceDest: 0 },
+        why: "The whole balance leaves the account and the receiver's balance doesn't change: a classic PaySim fraud pattern."
+      },
+      {
+        title: "Transfer: normal", tier: "LOW", tx: { step: 1, type: "TRANSFER", amount: 5000, oldbalanceOrg: 90000, newbalanceOrig: 85000, oldbalanceDest: 20000, newbalanceDest: 25000 },
+        why: "Both sides reconcile: 90,000 − 5,000 and 20,000 + 5,000."
+      },
+      {
+        title: "Cash-out: account emptied", tier: "HIGH", tx: { step: 1, type: "CASH_OUT", amount: 75000, oldbalanceOrg: 75000, newbalanceOrig: 0 },
+        why: "The entire balance is withdrawn as cash. The model scores it at 100 and the 'account emptied' rule fires."
+      },
+      {
+        title: "Cash-out: normal", tier: "LOW", tx: { step: 1, type: "CASH_OUT", amount: 1200, oldbalanceOrg: 50000, newbalanceOrig: 48800 },
+        why: "A small withdrawal that reconciles: 50,000 − 1,200 = 48,800."
+      },
+      {
+        title: "Cash-in: normal deposit", tier: "LOW", tx: { step: 1, type: "CASH_IN", amount: 2500, oldbalanceOrg: 10000, newbalanceOrig: 12500 },
+        why: "The balance rises by exactly the deposit: 10,000 + 2,500 = 12,500."
+      },
+      {
+        title: "Cash-in: balance mismatch", tier: "HIGH", tx: { step: 1, type: "CASH_IN", amount: 2500, oldbalanceOrg: 10000, newbalanceOrig: 20000 },
+        why: "2,500 is deposited but the balance jumps by 10,000, so the 'deposit not reflected correctly' rule fires. The confirmation screen warns about this first."
+      },
+    ];
+    const DEMO_TAG = { HIGH: ["#b91c1c", "#fee2e2", "Expected: HIGH · FRAUD DETECTED"], LOW: ["#15803d", "#dcfce7", "Expected: LOW · TRANSACTION LEGITIMATE"] };
+    const demoVals = tx => {
+      const p = [`type ${tx.type}`];
+      p.push(`amount ${fmtMoney(tx.amount)}`, `${NO_DEST.has(tx.type) ? "account" : "origin"} ${fmtMoney(tx.oldbalanceOrg)} → ${fmtMoney(tx.newbalanceOrig)}`);
+      if (!NO_DEST.has(tx.type)) p.push(`dest ${fmtMoney(tx.oldbalanceDest)} → ${fmtMoney(tx.newbalanceDest)}`);
+      return p.join("<br>");
+    };
+    $("demos").innerHTML = DEMOS.map((d, i) => {
+      const t = DEMO_TAG[d.tier]; return `<div class="demo">
   <div style="font:600 14px 'IBM Plex Sans';color:var(--text)">${esc(d.title)}</div>
   <div class="vals">${demoVals(d.tx)}</div>
   <div class="exp" style="color:${t[0]};background:${t[1]}"><b>${t[2]}</b><br><span style="color:#334155">${esc(d.why)}</span></div>
-  <button data-demo="${i}">▶ Try this demo</button></div>`; }).join("");
-$("demos").addEventListener("click", e=>{
-  const b = e.target.closest("button[data-demo]"); if(!b) return;
-  goPage("single"); fillForm(DEMOS[+b.dataset.demo].tx); $("results").innerHTML = ""; openConfirm();
-});
-const SAMPLE_CSV = [
-  "step,type,amount,oldbalanceOrg,newbalanceOrig,oldbalanceDest,newbalanceDest",
-  "1,TRANSFER,181,181,0,0,0", "1,TRANSFER,5000,90000,85000,20000,25000",
-  "1,CASH_OUT,75000,75000,0,0,0", "1,CASH_OUT,1200,50000,48800,0,0",
-  "1,CASH_IN,2500,10000,12500,0,0", "1,CASH_IN,2500,10000,20000,0,0",  "1,PAYMENT,50,100,50,0,0",
-].join("\n")+"\n";
-$("dlSample").addEventListener("click", ()=>{
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(new Blob([SAMPLE_CSV], {type:"text/csv"}));
-  a.download = "clarix_sample.csv"; document.body.appendChild(a); a.click();
-  setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 0);
-});
-$("steps").innerHTML = STEPS.map(s=>`<div class="step">
+  <button data-demo="${i}">▶ Try this demo</button></div>`;
+    }).join("");
+    $("demos").addEventListener("click", e => {
+      const b = e.target.closest("button[data-demo]"); if (!b) return;
+      goPage("single"); fillForm(DEMOS[+b.dataset.demo].tx); $("results").innerHTML = ""; openConfirm();
+    });
+    const SAMPLE_CSV = [
+      "step,type,amount,oldbalanceOrg,newbalanceOrig,oldbalanceDest,newbalanceDest",
+      "1,TRANSFER,181,181,0,0,0", "1,TRANSFER,5000,90000,85000,20000,25000",
+      "1,CASH_OUT,75000,75000,0,0,0", "1,CASH_OUT,1200,50000,48800,0,0",
+      "1,CASH_IN,2500,10000,12500,0,0", "1,CASH_IN,2500,10000,20000,0,0", "1,PAYMENT,50,100,50,0,0",
+    ].join("\n") + "\n";
+    $("dlSample").addEventListener("click", () => {
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(new Blob([SAMPLE_CSV], { type: "text/csv" }));
+      a.download = "clarix_sample.csv"; document.body.appendChild(a); a.click();
+      setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 0);
+    });
+    $("steps").innerHTML = STEPS.map(s => `<div class="step">
   <div class="step-num">${s.n}</div><div>
     <div style="display:flex;align-items:center;gap:8px;color:var(--teal)">${s.icon}<span style="font:600 14px 'IBM Plex Sans';color:var(--text)">${s.title}</span></div>
     <p style="margin:5px 0 0;font-size:13px;line-height:1.5;color:var(--muted)">${s.desc}</p></div></div>`).join("");
 
-const ARCH = [
-  {title:"Data", desc:"Transaction records with balances and metadata.", arrow:true, icon:icon(["M4 6c0-1.7 3.6-3 8-3s8 1.3 8 3-3.6 3-8 3-8-1.3-8-3z","M4 6v12c0 1.7 3.6 3 8 3s8-1.3 8-3V6"])},
-  {title:"Detection Models", desc:"Isolation Forest, XGBoost & LightGBM ensemble.", arrow:true, icon:icon(["M12 3v4","M6 7h12v4a6 6 0 0 1-12 0z","M9 17h6","M12 17v4"])},
-  {title:"Explainability", desc:"SHAP attribution + rule-based balance checks.", arrow:true, icon:icon(["M12 3a9 9 0 1 0 9 9","M12 3v9l6 3"])},
-  {title:"Dashboard", desc:"Score, verdict and reasons for the reviewer.", arrow:false, icon:icon(["M3 3h18v18H3z","M3 9h18","M9 21V9"])},
-];
-$("arch").innerHTML = ARCH.map(a=>`<div style="display:flex;align-items:center">
+    const ARCH = [
+      { title: "Data", desc: "Transaction records with balances and metadata.", arrow: true, icon: icon(["M4 6c0-1.7 3.6-3 8-3s8 1.3 8 3-3.6 3-8 3-8-1.3-8-3z", "M4 6v12c0 1.7 3.6 3 8 3s8-1.3 8-3V6"]) },
+      { title: "Detection Models", desc: "Isolation Forest, XGBoost & LightGBM ensemble.", arrow: true, icon: icon(["M12 3v4", "M6 7h12v4a6 6 0 0 1-12 0z", "M9 17h6", "M12 17v4"]) },
+      { title: "Explainability", desc: "SHAP attribution + rule-based balance checks.", arrow: true, icon: icon(["M12 3a9 9 0 1 0 9 9", "M12 3v9l6 3"]) },
+      { title: "Dashboard", desc: "Score, verdict and reasons for the reviewer.", arrow: false, icon: icon(["M3 3h18v18H3z", "M3 9h18", "M9 21V9"]) },
+    ];
+    $("arch").innerHTML = ARCH.map(a => `<div style="display:flex;align-items:center">
   <div class="arch-box"><div style="color:var(--teal);margin-bottom:10px">${a.icon}</div>
     <div style="font:600 14px 'IBM Plex Sans';color:var(--text)">${a.title}</div>
     <div style="margin-top:5px;font-size:12px;line-height:1.5;color:var(--muted)">${a.desc}</div></div>
-  ${a.arrow?`<div style="width:34px;text-align:center;color:var(--input-border);font-size:20px;flex:none">→</div>`:""}</div>`).join("");
+  ${a.arrow ? `<div style="width:34px;text-align:center;color:var(--input-border);font-size:20px;flex:none">→</div>` : ""}</div>`).join("");
 
-/* ── INIT ── */
-(function init(){
-  let t="light"; try{ t=localStorage.getItem("clarix-theme")||"light"; }catch(e){}
-  setTheme(t);
-  updateTypeFields();
-  checkStatus();
-  setInterval(checkStatus, 15000);
-})();
-</script>
+    /* ── INIT ── */
+    (function init() {
+      let t = "light"; try { t = localStorage.getItem("clarix-theme") || "light"; } catch (e) { }
+      setTheme(t);
+      updateTypeFields();
+      checkStatus();
+      setInterval(checkStatus, 15000);
+    })();
+  </script>
 </body>
+
 </html>
